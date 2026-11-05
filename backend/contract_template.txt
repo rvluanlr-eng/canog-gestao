@@ -1,0 +1,692 @@
+CONTRATO DE LOCAÇÃO DE BEM MÓVEL COM OPÇÃO 
+FACULTATIVA DE AQUISIÇÃO AO FINAL DO PRAZO
+Pelo presente instrumento particular de contrato, de um lado:
+CANOG  IPHONES  BM,  pessoa  jurídica  de  direito  privado,  com  sede  na  Av 
+Presidente Kennedy, 1465, bairro Ano Bom, CEP 27323-641, município de Barra 
+Mansa/RJ, neste ato representada por seu sócio administrador CAIO HENRIQUE 
+NOGUEIRA,  brasileiro,  solteiro,  empresário,  natural  de  Barra  Mansa/RJ,  com 
+poderes  de  representação  conforme  atos  constitutivos,  doravante  denominada 
+simplesmente LOCADORA.
+E, de outro lado:
+{{CLIENTE_NOME}},  brasileiro(a),  {{CLIENTE_ESTADO_CIVIL}},  {{CLIENTE_PROFISSAO}},  inscrito(a)  no  CPF  nº 
+{{CLIENTE_CPF}},  residente  e  domiciliado(a)  {{CLIENTE_ENDERECO}}  ,  CEP: 
+{{CLIENTE_CEP}}, telefone nº {{CLIENTE_TELEFONE}}, e-mail: {{CLIENTE_EMAIL}} , 
+doravante denominado(a) simplesmente LOCATÁRIO;
+O LOCATÁRIO declara que:
+• As informações fornecidas são verdadeiras;
+• O perfil de Instagram informado é de sua titularidade;
+• Autoriza sua utilização como meio complementar de identificação, 
+comunicação contratual, prevenção à fraude e eventual localização para 
+fins contratuais.
+E, na qualidade de FIADOR:
+{{FIADOR_NOME}},  brasileiro(a),  inscrito(a)  no  CPF 
+nº{{FIADOR_CPF}}, residente e domiciliado(a){{FIADOR_ENDERECO}} , 
+CEP: {{FIADOR_CEP}}, doravante denominado(a) simplesmente FIADOR;
+O FIADOR declara, neste ato:
+• Que leu integralmente o presente contrato;
+• Que compreende todas as obrigações assumidas pelo LOCATÁRIO;
+• Que aceita prestar fiança solidária nos termos das cláusulas contratuais;
+• Que autoriza a utilização de seus dados e perfil de Instagram para fins de 
+identificação, prevenção à fraude e comunicação contratual.
+Página 1 de 16
+
+[[PAGE_BREAK]]
+As partes acima qualificadas celebram o presente CONTRATO DE LOCAÇÃO 
+DE BEM MÓVEL COM OPÇÃO FACULTATIVA DE AQUISIÇÃO AO 
+FINAL DO
+PRAZO, que possui natureza jurídica exclusiva de locação de bem móvel, nos 
+termos dos artigos 565 a 578 do Código Civil, não se caracterizando como compra e 
+venda parcelada, financiamento ou operação de crédito. O presente instrumento 
+observará os princípios da boa-fé objetiva, função social do contrato e equilíbrio 
+contratual, podendo constituir título executivo extrajudicial, nos termos do artigo 784, 
+inciso III, do Código de Processo Civil, quando presentes os requisitos legais de 
+liquidez, certeza e exigibilidade.
+CLÁUSULA PRIMEIRA – DO OBJETO DO CONTRATO
+•
+O  presente  contrato  tem  por  objeto  a  locação  do  seguinte  bem  móvel  de 
+propriedade exclusiva da LOCADORA:
+Modelo:
+{{APARELHO_MODELO}}
+Capacidade:
+{{APARELHO_CAPACIDADE}}
+Cor:
+{{APARELHO_COR}}
+IMEI
+{{APARELHO_IMEI}}
+•
+O bem é entregue ao LOCATÁRIO para uso pessoal e exclusivo, sendo vedada 
+sua cessão, transferência, sublocação, empréstimo ou qualquer forma de alienação a 
+terceiros.
+O LOCATÁRIO declara que:
+• Recebeu o aparelho no estado de funcionamento e conservação descrito no Termo 
+de Vistoria e Entrega (Anexo I);
+• Testou o equipamento no ato da entrega;
+• Conferiu o número de IMEI e demais especificações;
+• Está ciente de que o bem permanece de propriedade exclusiva da LOCADORA 
+durante toda a vigência do contrato.
+•
+O estado de funcionamento e de conservação do aparelho, novo ou seminovo, 
+constará detalhadamente no Termo de Vistoria e Entrega (Anexo I), preenchido e 
+assinado pelas partes no ato da entrega, que passa a integrar o presente instrumento 
+para todos os fins de direito.
+Página 2 de 16
+
+[[PAGE_BREAK]]
+CLÁUSULA SEGUNDA – DA VIGÊNCIA, INÍCIO, PRAZO E 
+INADIMPLEMENTO
+•
+O presente contrato de locação terá prazo determinado de {{PRAZO_MESES}} meses, iniciando-
+se na data da efetiva entrega do bem ao LOCATÁRIO, devidamente formalizada por 
+termo  de  entrega  ou  outro  meio  idôneo  de  comprovação,  inclusive  assinatura 
+eletrônica,  fotografia,  vídeo,  confirmação  eletrônica  ou  mensagem  enviada  pelo 
+LOCATÁRIO.
+•
+O término do prazo contratual ocorrerá automaticamente, independentemente de 
+aviso prévio, na data de {{DATA_TERMINO}}, não implicando, ainda que todas as parcelas da 
+locação tenham sido integralmente quitadas, transferência automática da propriedade 
+do bem ao LOCATÁRIO.
+•
+Encerrado o prazo contratual, o LOCATÁRIO deverá, no prazo máximo de 10 
+(dez) dias úteis:
+• Devolver o bem à LOCADORA, nas mesmas condições em que o recebeu, 
+ressalvado o desgaste natural decorrente do uso regular; ou
+• Exercer, de forma expressa e por escrito, a opção facultativa de aquisição do 
+bem, caso prevista neste instrumento, observadas as condições estabelecidas 
+neste contrato.
+•
+A ausência de manifestação expressa do LOCATÁRIO no prazo previsto nesta 
+cláusula  será  interpretada  como  renúncia  à  opção  de  compra,  permanecendo 
+obrigatória a devolução do bem à LOCADORA.
+•
+Durante toda a vigência contratual, o bem permanecerá de propriedade exclusiva 
+da  LOCADORA,  sendo  conferida  ao  LOCATÁRIO  apenas  a  posse  direta  e 
+temporária, vinculada ao fiel cumprimento das obrigações assumidas. A propriedade 
+do bem somente será transferida ao LOCATÁRIO após o cumprimento integral das 
+condições  previstas  neste  contrato,  especialmente  o  adimplemento  total  das 
+obrigações financeiras e o exercício válido da opção de compra, conforme previsto 
+em cláusula específica.
+•
+O não pagamento de qualquer parcela na data do vencimento constituirá o 
+LOCATÁRIO em mora de pleno direito no dia seguinte ao vencimento, 
+independentemente  de  qualquer  notificação  ou  interpelação,  sujeitando-o  aos 
+encargos previstos neste contrato.
+Página 3 de 16
+
+[[PAGE_BREAK]]
+•
+O inadimplemento de qualquer parcela por período superior a 05 (cinco) dias 
+corridos poderá ensejar a rescisão do presente contrato, mediante notificação prévia 
+ao LOCATÁRIO concedendo prazo de 05 (cinco) dias para purgação da mora. Não 
+sendo regularizado o débito no prazo concedido, a rescisão se considerará efetivada, 
+tornando-se exigível a devolução imediata do bem no prazo máximo de 05 (cinco) 
+dias,  sob  pena  de  adoção  das  medidas  judiciais  e  extrajudiciais  cabíveis  para 
+retomada  do  bem,  sem  prejuízo  da  cobrança  dos  valores  em  aberto,  encargos 
+contratuais e demais penalidades previstas neste instrumento.
+•
+O LOCATÁRIO declara estar ciente de que o bem objeto deste contrato possui 
+mecanismos de rastreamento e segurança destinados exclusivamente à proteção 
+patrimonial da LOCADORA, à localização do aparelho em caso de perda, furto, 
+roubo, extravio ou para fins de recuperação da posse após a rescisão contratual, 
+observadas as disposições da Lei nº 13.709/2018 (Lei Geral de Proteção de Dados 
+Pessoais – LGPD).
+Parágrafo  único.  Os  mecanismos  de  rastreamento  serão  utilizados  apenas  nas 
+hipóteses previstas nesta cláusula, não se destinando ao monitoramento contínuo da 
+rotina, dos deslocamentos ou da localização pessoal do LOCATÁRIO, salvo quando 
+estritamente necessário à proteção do patrimônio da LOCADORA, à recuperação do 
+bem  ou  ao  cumprimento  de  obrigação  legal  ou  determinação  de  autoridade 
+competente.
+CLÁUSULA TERCEIRA – VALOR DA LOCAÇÃO E FORMA DE 
+PAGAMENTO
+•
+Pela locação do bem descrito na Cláusula Primeira, o LOCATÁRIO realizará o 
+pagamento da seguinte forma: R$ {{ENTRADA}} |( X)  de entrada no ato da assinatura 
+do contrato e {{PARCELAS}} parcelas de R$ {{PARCELA_VALOR}} que pagará à LOCADORA.
+•
+A primeira parcela vencerá em {{PRIMEIRO_VENCIMENTO}}, e as demais nos meses subsequentes, na 
+mesma data, até o término do prazo contratual.
+•
+Em caso de atraso no pagamento, incidirão:
+• Multa moratória de 2% (dois por cento) sobre o valor da parcela em atraso;
+• Juros de mora de 1% (um por cento) ao mês, calculados pro rata die;
+• Correção monetária pelo índice legal aplicável;
+•
+Em  caso  de  quebra,  avaria  ou  qualquer  problema  que  venha  ocasionar 
+manutenção no aparelho, o LOCATÁRIO deverá OBRIGATORIAMENTE levar o 
+Página 4 de 16
+
+[[PAGE_BREAK]]
+aparelho na assistência técnica da própria LOCADORA. E os gastos de manutenção 
+será de total responsabilidade do LOCATÁRIO após o período de garantia de 06 
+meses. Ressaltando, que a garantia não inclui: queda, mau uso ou falta de zelo por 
+parte do LOCATÁRIO.
+•
+O pagamento será realizado por meio de boleto bancário, PIX ou outro meio 
+disponibilizado pela LOCADORA, sendo considerado quitado somente após a efetiva 
+compensação financeira.
+•
+Em caso de perda, furto, roubo ou extravio do bem, o LOCATÁRIO obriga-se a 
+indenizar a LOCADORA pelo valor de mercado do aparelho, apurado com base no 
+valor médio praticado para o mesmo modelo e capacidade na data do evento, sem 
+prejuízo da quitação das parcelas vencidas e dos encargos de mora até a comunicação 
+do fato.
+Parágrafo único. A ocorrência de qualquer das hipóteses previstas no caput acarreta 
+a rescisão antecipada do contrato por culpa do LOCATÁRIO. Em decorrência da 
+rescisão,  será  devida,  além  da  indenização  pelo  bem,  uma  cláusula  penal 
+compensatória no valor de 10% (dez por cento) do valor de mercado do aparelho, 
+destinada a cobrir os custos administrativos e operacionais da LOCADORA com o 
+encerramento prematuro da locação.
+•
+A entrega  do  aparelho  será  documentada  por  meio  de  fotos  e/ou  vídeo, 
+registrando o estado do bem, seu número de IMEI e a assinatura do contrato. Este 
+registro servirá como prova de entrega, recebimento e aceitação do aparelho nas 
+condições em que se encontra, complementando o Termo de Vistoria e Entrega 
+(Anexo I).
+CLÁUSULA QUARTA – DAS OBRIGAÇÕES DAS PARTES
+•
+Obrigações da LOCADORA:
+• Entregar o aparelho em perfeito estado de funcionamento, conforme Termo de 
+Vistoria e Entrega (Anexo I) assinado pelas partes;
+• Emitir e disponibilizar, dentro dos prazos adequados, os meios de 
+cobrança das parcelas mensais;
+• Realizar cobranças administrativas e demais procedimentos de cobrança, 
+incluindo contatos por meios digitais e telefônicos, visando a regularização 
+de eventual inadimplência e acompanhamento em caso de atraso, utilizando 
+os meios de comunicação informados pelo LOCATÁRIO.
+Página 5 de 16
+
+[[PAGE_BREAK]]
+•
+Obrigações do LOCATÁRIO:
+• Efetuar pontualmente o pagamento de todas as parcelas, taxas e encargos 
+previstos neste contrato;
+• Utilizar o aparelho exclusivamente para fins lícitos, responsabilizando-se 
+integralmente por seu uso;
+• Abster-se de vender, emprestar, ceder, alugar, empenhar, transferir, ocultar ou 
+onerar o aparelho a terceiros, sob qualquer título;
+• Manter o aparelho nas mesmas condições em que o recebeu, salvo o desgaste 
+natural decorrente do uso regular;
+• Responder por eventuais danos, prejuízos ou perdas causadas ao aparelho 
+por uso indevido, negligência ou dolo;
+• Manter atualizados seus dados de contato (telefone, e-mail, endereço e redes 
+sociais informadas), comunicando formalmente qualquer alteração no prazo 
+máximo de 05 (cinco) dias;
+• Responder às comunicações da LOCADORA relativas ao contrato, 
+especialmente em caso de atraso no pagamento;
+• Reconhecer que, em caso de inadimplemento, a LOCADORA poderá contatar 
+os FIADORES para informar o descumprimento contratual e adotar as medidas 
+cabíveis, sem que tal ato configure constrangimento ou violação de sigilo;
+• Devolver o aparelho imediatamente nas hipóteses de rescisão contratual ou 
+término do prazo sem exercício da opção de aquisição.
+CLÁUSULA QUINTA – DA RESPONSABILIDADE CIVIL E EVENTUAL 
+REPERCUSSÃO PENAL
+•
+O  inadimplemento  contratual  caracteriza  responsabilidade  civil  do 
+LOCATÁRIO, sujeitando-o às penalidades previstas neste instrumento, inclusive 
+pagamento de parcelas vencidas, multas contratuais, encargos moratórios, honorários 
+advocatícios e demais despesas decorrentes da cobrança.
+•
+O LOCATÁRIO declara ciência de que a retenção do bem após o término do 
+contrato ou após notificação de rescisão por inadimplemento configura posse precária 
+e injusta, sujeitando-o às medidas judiciais e extrajudiciais cabíveis para retomada do 
+bem, bem como às demais responsabilidades legais decorrentes da não restituição do 
+patrimônio da LOCADORA.
+Página 6 de 16
+
+[[PAGE_BREAK]]
+•
+A presente cláusula não transforma o mero atraso no pagamento em ilícito penal, 
+limitando-se a advertir quanto às hipóteses de retenção ou disposição indevida do 
+bem.
+CLÁUSULA SEXTA – DA ENTRADA INICIAL E DO USO DO 
+EQUIPAMENTO
+•
+Para a efetivação da locação, o LOCATÁRIO paga à LOCADORA, neste ato, o 
+valor  de  R${{TAXA_ATIVACAO}}   a  título  de  Taxa  de  Ativação,  referente  aos  custos 
+operacionais iniciais.
+•
+A referida  taxa  remunera  despesas  como  análise  de  crédito,  preparação, 
+higienização  e  configuração  do  equipamento,  que  são  indispensáveis  para  a 
+disponibilização do bem ao LOCATÁRIO.
+•
+Por  remunerar  custos  já  incorridos  pela  LOCADORA  no  momento  da 
+contratação, o valor pago a título de Taxa de Ativação não será, a princípio, objeto de 
+restituição em caso de rescisão antecipada, por não se tratar de adiantamento de 
+aluguel ou depósito em garantia.
+CLÁUSULA SÉTIMA – DAS COMUNICAÇÕES ELETRÔNICAS E MEIOS 
+DE PROVA
+•
+As partes reconhecem como válidas todas as comunicações realizadas por meios 
+eletrônicos, incluindo WhatsApp, e-mail, SMS ou outras plataformas informadas 
+neste contrato.
+•
+O  LOCATÁRIO  declara  que  os  dados  de  contato  fornecidos  são  de  sua 
+titularidade e uso pessoal, comprometendo-se a mantê-los ativos e atualizados. As 
+comunicações e notificações enviadas pela LOCADORA para os contatos informados 
+serão consideradas válidas e eficazes, presumindo-se o recebimento quando o envio 
+for comprovado e não houver registro de falha permanente de entrega, ressalvadas as 
+hipóteses em que a lei exigir forma específica de notificação.
+•
+As mensagens, registros de envio, confirmações de entrega, confirmações de 
+leitura quando disponíveis, arquivos digitais, fotos, vídeos e gravações poderão ser 
+utilizados como  meio  de  prova  em  procedimentos  judiciais  ou  extrajudiciais, 
+inclusive para comprovação de ciência, notificação e inadimplemento contratual.
+Página 7 de 16
+
+[[PAGE_BREAK]]
+•
+A LOCADORA poderá, se necessário, promover a lavratura de ata notarial para 
+fins de comprovação da autenticidade das comunicações eletrônicas, nos termos da 
+legislação aplicável.
+•
+As partes reconhecem a validade jurídica das assinaturas eletrônicas e digitais, 
+inclusive  aquelas  realizadas  por  plataformas  certificadas,  nos  termos  da  Lei  nº 
+14.063/2020.
+CLÁUSULA OITAVA – DAS NOTIFICAÇÕES EXTRAJUDICIAIS E 
+DILIGÊNCIAS OPERACIONAIS
+•
+Em caso de inadimplemento ou descumprimento contratual, a LOCADORA 
+poderá  promover  o  envio  de  notificações  extrajudiciais  ao  LOCATÁRIO  e  ao 
+FIADOR, diretamente ou por meio de escritório jurídico contratado, com a finalidade 
+de  constituí-los  formalmente  em  mora,  exigir  o  cumprimento  das  obrigações 
+assumidas ou comunicar a adoção de medidas administrativas e judiciais cabíveis.
+•
+As notificações extrajudiciais poderão ser encaminhadas por quaisquer meios 
+idôneos, incluindo, mas não se limitando a:
+• Correspondência com Aviso de Recebimento (AR);
+• E-mail e aplicativos de mensagens, cuja validade e eficácia como meio de 
+comunicação seguem o disposto na Cláusula Sétima;
+• Cartório de Títulos e Documentos;
+• Contato realizado por advogado ou escritório jurídico regularmente constituído.
+•
+A LOCADORA poderá  realizar  diligências  junto  à  Empresa  Brasileira  de 
+Correios  e  Telégrafos  para  envio  das  notificações  extrajudiciais,  inclusive  na 
+modalidade com Aviso de Recebimento (AR) e "mão própria", com o objetivo de 
+garantir a efetiva ciência do LOCATÁRIO e do FIADOR.
+•
+Fica facultado à LOCADORA realizar o envio de notificações extrajudiciais em 
+lotes operacionais, conforme sua organização administrativa e conveniência, sem 
+periodicidade obrigatória, podendo variar de acordo com a demanda e a necessidade 
+de cobrança.
+•
+O comprovante de envio, a confirmação de recebimento ou a certificação de 
+tentativa  de  entrega  serão  considerados  meios  válidos  de  prova  da  notificação, 
+produzindo todos os efeitos legais, inclusive para fins de constituição em mora.
+Página 8 de 16
+
+[[PAGE_BREAK]]
+•
+As  despesas  razoáveis  e  comprovadamente  necessárias  para  a  cobrança  de 
+obrigações não cumpridas, incluindo custos de notificação e honorários advocatícios 
+contratuais,  poderão  ser  imputadas  à  parte  inadimplente.  Fica  assegurado  ao 
+LOCATÁRIO  e  ao  FIADOR  idêntico  direito,  caso  a  LOCADORA descumpra 
+obrigação contratual que justifique a adoção de medidas para exigir seu cumprimento.
+•
+O LOCATÁRIO e o FIADOR reconhecem a validade jurídica das notificações 
+enviadas nos termos desta cláusula, desde que comprovada a tentativa de entrega por 
+meio idôneo, renunciando a alegações de nulidade exclusivamente formais quanto ao 
+meio de envio.
+•
+Consideram-se incluídas como despesas recuperáveis apenas aquelas razoáveis, 
+necessárias e diretamente relacionadas às medidas de cobrança e recuperação do 
+crédito, incluindo despesas administrativas, operacionais, cartorárias e demais custos 
+comprovadamente decorrentes do inadimplemento contratual.
+CLÁUSULA NONA – DA FIANÇA E RESPONSABILIDADE SOLIDÁRIA
+•
+O FIADOR, devidamente qualificado no início deste contrato, presta fiança em 
+favor da LOCADORA, responsabilizando-se solidariamente pelo fiel cumprimento de 
+todas as obrigações assumidas pelo LOCATÁRIO.
+•
+O FIADOR renuncia expressamente ao benefício de ordem previsto no artigo 
+827 e 828 do Código Civil, podendo ser acionado diretamente pela LOCADORA 
+como devedor principal.
+•
+A responsabilidade  do  FIADOR  abrange  integralmente  todas  as  obrigações 
+decorrentes deste contrato, incluindo, mas não se limitando a:
+§1º. Parcelas vencidas e vincendas;
+§2º. Multas contratuais;
+§3º. Encargos moratórios;
+§4º. Indenizações por perdas e danos;
+§5º. Honorários advocatícios, custas judiciais e despesas de cobrança.
+•
+A presente fiança é prestada em caráter irrevogável e irretratável, permanecendo 
+válida por todo o período de vigência do contrato, inclusive em caso de prorrogação 
+por prazo indeterminado, e perdurando até a efetiva devolução do bem e a quitação 
+integral de todas as obrigações. O FIADOR renuncia, neste ato, de forma expressa e 
+Página 9 de 16
+
+[[PAGE_BREAK]]
+definitiva, à faculdade de exoneração da fiança prevista no artigo 835 do Código 
+Civil.
+•
+O FIADOR autoriza expressamente, em caso de inadimplemento, a adoção das 
+medidas de cobrança cabíveis, inclusive a comunicação e eventual negativação de seu 
+nome junto aos órgãos de proteção ao crédito, desde que observados os requisitos 
+legais.
+CLÁUSULA DÉCIMA – DA OPÇÃO DE COMPRA E TRANSFERÊNCIA DE 
+TITULARIDADE DO BEM
+•
+Ao término do prazo contratual, o LOCATÁRIO poderá, a seu exclusivo 
+critério, exercer a opção de compra do aparelho objeto da locação, mediante o 
+pagamento do valor residual previamente estipulado neste contrato.
+•
+O exercício da opção de compra estará condicionado à quitação integral de 
+todas as obrigações contratuais assumidas pelo LOCATÁRIO, inclusive parcelas, 
+encargos, multas, indenizações e demais valores eventualmente devidos.
+•
+Uma  vez  exercida  a  opção de compra e realizado o pagamento do valor 
+residual, as partes firmarão Termo de Quitação e Transferência de Titularidade, o qual 
+poderá ser celebrado por meio de assinatura eletrônica ou digital, nos termos da 
+legislação vigente.
+•
+Com  a  assinatura  do  Termo  de  Quitação  e  Transferência  de  Titularidade, 
+considerar-se-ão integralmente cumpridas as obrigações contratuais, operando-se a 
+transferência definitiva da propriedade do bem ao LOCATÁRIO, cessando a natureza 
+jurídica de locação a partir desse momento.
+•
+A não realização da opção de compra pelo LOCATÁRIO ao término do prazo 
+contratual não ensejará qualquer direito à restituição, compensação ou reembolso dos 
+valores pagos durante a vigência do contrato, os quais correspondem exclusivamente 
+à contraprestação pelo uso do bem.
+•
+O LOCATÁRIO declara ciência de que a transferência de propriedade somente 
+se perfectibiliza mediante o cumprimento integral das condições previstas neste 
+contrato,  especialmente o pagamento do valor residual e a formalização do Termo de 
+Quitação e Transferência de Titularidade, não sendo admitida qualquer forma tácita 
+de aquisição do bem.
+Página 10 de 16
+
+[[PAGE_BREAK]]
+CLÁUSULA DÉCIMA PRIMEIRA – DA RENEGOCIAÇÃO E CONFISSÃO 
+DE DÍVIDA
+•
+Em caso de inadimplemento, poderá a LOCADORA, a seu exclusivo critério, 
+promover a renegociação da dívida junto ao LOCATÁRIO, mediante condições 
+específicas a serem formalmente estabelecidas entre as partes.
+•
+A eventual  renegociação  poderá  ser  formalizada  por  meio  de  Termo  de 
+Confissão de Dívida, firmado pelas partes e, quando exigido pela legislação aplicável, 
+revestido das formalidades necessárias para constituir título executivo extrajudicial.
+•
+A eventual renegociação, acordo ou confissão de dívida não implicará novação 
+(extinção) da dívida original, mas sim mera ratificação das obrigações, mantendo-se 
+integralmente válidas e eficazes todas as garantias originalmente pactuadas.
+•
+A responsabilidade do FIADOR se estende à dívida original e seus encargos. O 
+FIADOR  somente  se  responsabilizará  por  obrigações  decorrentes  de  futuras 
+renegociações,  confissões  de  dívida  ou  aditamentos  contratuais  caso  anua 
+expressamente com os novos termos.
+•
+O descumprimento do Termo de Confissão de Dívida implicará o vencimento 
+antecipado das obrigações nele previstas, facultando à LOCADORA promover a 
+execução  do  referido  instrumento  ou  adotar  as  medidas  judiciais  cabíveis  com 
+fundamento no contrato original.
+•
+A formalização da renegociação é faculdade exclusiva da LOCADORA, não 
+constituindo direito adquirido do LOCATÁRIO.
+CLÁUSULA DÉCIMA SEGUNDA – DA INSCRIÇÃO EM ÓRGÃOS DE 
+PROTEÇÃO AO CRÉDITO E PROTESTO
+•
+Em caso de inadimplemento de qualquer obrigação financeira prevista neste 
+contrato, a LOCADORA poderá, a seu exclusivo critério, promover, em relação ao 
+LOCATÁRIO e ao FIADOR, isolada, simultânea ou sucessivamente, as seguintes 
+medidas:
+• Inscrição dos respectivos nomes e do débito nos órgãos de proteção ao crédito, 
+tais como SPC, Serasa ou outros bancos de dados de natureza semelhante, 
+observados os requisitos legais;
+• Protesto do presente contrato ou de títulos dele decorrentes perante o 
+tabelionato  competente, para fins de comprovação da inadimplência, 
+Página 11 de 16
+
+[[PAGE_BREAK]]
+publicidade do débito e  preservação  dos  direitos  creditórios  da 
+LOCADORA.
+•
+O  LOCATÁRIO  e  o  FIADOR  declaram  estar  cientes  de  que  as  medidas 
+previstas nesta cláusula poderão ser adotadas após o vencimento da obrigação não 
+adimplida, observados os requisitos e formalidades previstos na legislação aplicável, 
+independentemente de notificação judicial.
+•
+A exclusão da inscrição nos órgãos de proteção ao crédito e o cancelamento do 
+protesto ficam condicionados à quitação integral da obrigação, compreendendo o 
+valor principal, multa, juros, correção monetária, honorários advocatícios, despesas 
+cartorárias e demais encargos expressamente previstos neste contrato ou legalmente 
+exigíveis.
+•
+As despesas e os emolumentos relativos ao protesto, ao respectivo cancelamento 
+e às demais providências necessárias perante o tabelionato competente correrão por 
+conta do LOCATÁRIO e do FIADOR, quando decorrentes do inadimplemento, 
+observada a legislação aplicável.
+CLÁUSULA DÉCIMA TERCEIRA – DA PROPRIEDADE DO BEM E 
+NATUREZA JURÍDICA
+•
+O presente contrato possui natureza jurídica exclusiva de locação de bem 
+móvel, não se caracterizando, em nenhuma hipótese, como compra e venda a prazo, 
+financiamento ou arrendamento mercantil (leasing). Todas as suas cláusulas devem 
+ser interpretadas sob esta ótica.
+•
+A transferência da propriedade do bem ao LOCATÁRIO não é automática. Ela 
+somente ocorrerá se a opção de compra for validamente exercida e após a quitação 
+integral de todas as obrigações, sendo formalizada pela emissão de um termo de 
+transferência pela LOCADORA.
+•
+O LOCATÁRIO compromete-se a não realizar qualquer modificação, alteração 
+ou intervenção não autorizada no software ou hardware do bem, incluindo, mas não 
+se limitando a: alteração de IMEI, desbloqueios de rede irregulares ou remoção de 
+softwares de gerenciamento e segurança instalados pela LOCADORA.
+CLÁUSULA DÉCIMA QUARTA – DA PROTEÇÃO DE DADOS PESSOAIS
+•
+O LOCATÁRIO e o FIADOR autorizam expressamente a LOCADORA a 
+realizar o tratamento de seus dados pessoais, incluindo nome, CPF, RG, endereço, 
+Página 12 de 16
+
+[[PAGE_BREAK]]
+telefone, e-mail,  perfil  de  redes sociais, dados bancários e demais informações 
+necessárias à celebração e execução do presente contrato.
+•
+O tratamento dos dados terá como finalidade a gestão contratual, análise de 
+crédito, prevenção à fraude, cobrança administrativa ou judicial, eventual inscrição 
+em  órgãos  de  proteção  ao  crédito  em  caso  de  inadimplemento,  recuperação  e 
+localização do bem objeto da locação, bem como o cumprimento de obrigações legais 
+ou regulatórias.
+•
+A  LOCADORA  poderá  compartilhar  os  dados  pessoais  com  instituições 
+financeiras, empresas de cobrança, seguradoras, órgãos de proteção ao crédito e 
+autoridades públicas, sempre que necessário à execução contratual ou exigida por lei.
+•
+O término do contrato não impedirá a manutenção dos dados pelo prazo 
+necessário ao cumprimento de obrigações legais ou para resguardo de direitos da 
+LOCADORA.
+CLÁUSULA 
+DÉCIMA 
+QUINTA 
+– 
+DO 
+TÍTULO 
+EXECUTIVO 
+EXTRAJUDICIAL
+•
+As partes reconhecem que este instrumento constitui título executivo 
+extrajudicial. Sua força executiva decorre:
+• Do art. 784, § 4º, do Código de Processo Civil, por ser assinado eletronicamente 
+sem a necessidade de testemunhas; ou
+• Do art. 784, III, do Código de Processo Civil, caso seja assinado 
+fisicamente em cartório, com a assinatura de 2 (duas) testemunhas.
+CLÁUSULA DÉCIMA SEXTA – DO BLOQUEIO DE IMEI
+•
+O LOCATÁRIO declara ter ciência de que o aparelho possui uma identificação 
+única (IMEI), que permanece vinculada à propriedade da LOCADORA durante toda a 
+vigência do contrato.
+•
+Em  caso  de  furto,  roubo  ou  perda,  e  após  a  devida  comunicação  pelo 
+LOCATÁRIO  com  a  apresentação  do  respectivo  Boletim  de  Ocorrência,  a 
+LOCADORA solicitará o bloqueio do IMEI junto às operadoras para inutilizar o 
+aparelho.
+•
+Em caso de inadimplemento contratual que resulte em rescisão, se o aparelho 
+não for devolvido voluntariamente, a LOCADORA poderá requerer em juízo, além da 
+busca e apreensão do bem, o bloqueio do IMEI como medida para proteger seu 
+Página 13 de 16
+
+[[PAGE_BREAK]]
+patrimônio. Fica ciente o LOCATÁRIO que o bloqueio por inadimplência, nesta 
+hipótese, somente ocorrerá mediante ordem judicial, não sendo utilizado como meio 
+de cobrança extrajudicial.
+•
+Fica autorizado o uso de software de gerenciamento de dispositivos (MDM) 
+com a finalidade exclusiva de realizar auditorias de inventário (verificação de status 
+do bem) e para auxiliar na recuperação do aparelho. É expressamente vedado o 
+uso de tal software para acessar, monitorar ou coletar quaisquer dados pessoais do 
+LOCATÁRIO, como fotos, contatos, mensagens ou histórico de navegação, em estrita 
+observância à LGPD.
+CLÁUSULA DÉCIMA SÉTIMA – DA TOLERÂNCIA
+•
+A eventual  tolerância  da  LOCADORA em  relação  ao  atraso  ou  ao 
+descumprimento  de  qualquer  obrigação  contratual  pelo  LOCATÁRIO  ou  pelo 
+FIADOR  será  interpretada  como  mera  liberalidade,  não  implicando  novação, 
+renúncia, transação ou alteração de qualquer cláusula deste contrato.
+•
+O não exercício imediato de qualquer direito previsto neste instrumento não 
+impedirá que a LOCADORA o exerça a qualquer tempo, permanecendo todos os seus 
+direitos e prerrogativas contratuais inalterados.
+CLÁUSULA DÉCIMA OITAVA – DO FORO E DA COMPETÊNCIA
+•
+Para  dirimir  quaisquer  controvérsias  decorrentes  deste  contrato,  fica 
+estabelecido  como  competente  o  foro  de  domicílio  do  LOCATÁRIO,  em 
+conformidade com o artigo 101, I, do Código de Defesa do Consumidor.
+CLÁUSULA DÉCIMA NONA – DAS DISPOSIÇÕES GERAIS
+•
+O presente contrato representa o acordo integral entre as partes, substituindo 
+quaisquer outros acordos, propostas ou comunicações, orais ou escritas, anteriores a 
+esta data.
+•
+Se  qualquer  disposição  deste  contrato  for  considerada  nula,  ilegal  ou 
+inexequível, as demais disposições permanecerão em pleno vigor e efeito.
+•
+Este contrato obriga as partes, seus herdeiros e sucessores a qualquer título.
+Página 14 de 16
+
+[[PAGE_BREAK]]
+Barra Mansa-RJ, {{DATA_CONTRATO}}
+LOCADORA
+_________________________________
+CANOG IPHONES BM
+Representante legal: CAIO 
+HENRIQUE NOGUEIRA
+CPF: 133.752.547-25
+LOCATÁRIO:
+_________________________________
+Nome: {{CLIENTE_NOME}}
+CPF: {{CLIENTE_CPF}}
+FIADOR:
+_________________________________
+Nome:{{FIADOR_NOME}}
+CPF:{{FIADOR_CPF}}
+Testemunha
+_________________________________
+Nome: BRUNO FAUSTO BRANDÃO DE 
+OLIVEIRA
+CPF: 170.521.547-57
+Página 15 de 16
+
+[[PAGE_BREAK]]
+CANOG
+ANEXO I — Termo de Vistoria e Entrega do Aparelho
+Contrato assinado em: {{DATA_CONTRATO}}
+Data da vistoria: {{DATA_VISTORIA}}
+Antes de você levar o aparelho, vamos conferir tudo juntos. Marque cada item e, se notar qualquer coisa, escreva em Observações. 
+Isso protege você e a loja.
+1  Seus dados e o aparelho
+Nome do cliente
+{{CLIENTE_NOME}}
+CPF
+{{CLIENTE_CPF}}
+Modelo do aparelho
+{{APARELHO_MODELO}}
+Capacidade
+{{APARELHO_CAPACIDADE}}
+Cor
+{{APARELHO_COR}}
+IMEI (confere com o contrato)
+{{APARELHO_IMEI}}
+O aparelho é
+☐  Novo        ☐  Seminovo
+2  Está tudo funcionando?   marque Sim ou Não em cada item
+O que conferimos
+Como testamos com você
+Sim
+Não
+Liga e funciona normalmente
+Ligamos o aparelho e navegamos pelos menus
+☐
+☐
+Tela sem manchas, linhas ou pontos
+Olhamos a tela com fundo branco e com fundo escuro
+☐
+☐
+Toque funciona na tela inteira
+Arrastamos um ícone por todos os cantos
+☐
+☐
+Face ID
+Cadastramos seu rosto e desbloqueamos
+☐
+☐
+Câmeras traseira e frontal
+Tiramos uma foto com cada uma
+☐
+☐
+Som e microfone
+Tocamos um som e gravamos um áudio
+☐
+☐
+Ligação e chip
+Fizemos uma ligação de teste
+☐
+☐
+Botões
+Liga/desliga, volume e silencioso
+☐
+☐
+Carregamento
+Conectamos no carregador e ele carregou
+☐
+☐
+Wi-Fi e internet
+Conectamos e abrimos uma página
+☐
+☐
+3  Bateria
+Saúde da bateria: ________ %     (vista juntos em Ajustes › Bateria › Saúde da Bateria)
+4  Como está por fora?   marque uma opção por linha
+Parte do aparelho
+Sem marcas
+Riscos leves
+Trincado ou amassado
+Tela (frente)
+☐
+☐
+☐
+Traseira
+☐
+☐
+☐
+Laterais
+☐
+☐
+☐
+Lentes das câmeras
+☐
+☐
+☐
+5  O que você está levando junto
+☐  Capa        ☐  Película aplicada        ☐  Carregador        ☐  Caixa
+6  Observações
+Algum risco, marca ou detalhe que você quer deixar anotado? Escreva aqui.
+7  Confirmação
+☐  Tiramos fotos do aparelho na sua frente        ☐  Gravamos o vídeo do teste
+Eu conferi o aparelho junto com a Canog, testei os itens acima e confirmo que as informações deste termo estão corretas. As fotos e o 
+vídeo feitos hoje fazem parte deste documento.
+Assinatura do cliente
+Canog — quem fez a conferência
+Este termo é o Anexo I do contrato de locação do aparelho identificado acima e faz parte dele. Feito em 2 vias: uma fica com você, outra com a loja.
+Página 16 de 16

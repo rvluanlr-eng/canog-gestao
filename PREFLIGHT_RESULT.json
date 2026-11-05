@@ -1,0 +1,75 @@
+{
+  "ready_for_release": false,
+  "checks": [
+    {
+      "check": "backend/main.py",
+      "passed": true,
+      "detail": "Arquivo obrigatório"
+    },
+    {
+      "check": "backend/requirements.txt",
+      "passed": true,
+      "detail": "Arquivo obrigatório"
+    },
+    {
+      "check": "backend/contract_template.txt",
+      "passed": true,
+      "detail": "Arquivo obrigatório"
+    },
+    {
+      "check": "frontend/package.json",
+      "passed": true,
+      "detail": "Arquivo obrigatório"
+    },
+    {
+      "check": "frontend/index.html",
+      "passed": true,
+      "detail": "Arquivo obrigatório"
+    },
+    {
+      "check": "frontend/src/main.jsx",
+      "passed": true,
+      "detail": "Arquivo obrigatório"
+    },
+    {
+      "check": "comando de build",
+      "passed": true,
+      "detail": "package.json scripts.build"
+    },
+    {
+      "check": "dependências frontend instaladas",
+      "passed": false,
+      "detail": "vite disponível localmente"
+    },
+    {
+      "check": "node disponível",
+      "passed": true,
+      "detail": "Executável node"
+    },
+    {
+      "check": "npm disponível",
+      "passed": true,
+      "detail": "Executável npm"
+    },
+    {
+      "check": "ambiente DATABASE_URL",
+      "passed": false,
+      "detail": "Variável presente no ambiente de execução"
+    },
+    {
+      "check": "ambiente JWT_SECRET",
+      "passed": false,
+      "detail": "Variável presente no ambiente de execução"
+    },
+    {
+      "check": "ambiente CORS_ORIGINS",
+      "passed": false,
+      "detail": "Variável presente no ambiente de execução"
+    },
+    {
+      "check": "segredo JWT com 32+ caracteres",
+      "passed": false,
+      "detail": "Comprimento mínimo; não exibe o segredo"
+    }
+  ]
+}
