@@ -1035,3 +1035,73 @@ def checklist(contract_id:str,u:User=Depends(actor),s:Session=Depends(db)):
  approved={kind for kind,d in latest.items() if d.status=='approved'}
  inspection=s.scalar(select(DeviceInspection).where(DeviceInspection.contract_id==c.id,DeviceInspection.tenant_id==u.tenant_id))
  return {'inspection_completed':bool(inspection and set(json.loads(inspection.checks_json))==set(INSPECTION_FIELDS) and all(v in ('ok','issue','not_tested') for v in json.loads(inspection.checks_json).values())),'missing_documents':sorted(REQUIRED_DOCUMENTS-approved),'signed':bool(c.signed_at),'delivered':bool(c.delivered_at),'has_guarantor':bool(c.guarantor_id),'first_due_set':bool(c.first_due),'status':c.status}
+
+# Excel inventory import. Two-step preview/confirmation; existing devices never overwritten.
+def _inventory_from_excel(content:bytes):
+ from openpyxl import load_workbook
+ from openpyxl.utils.exceptions import InvalidFileException
+ from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+ import unicodedata
+ if len(content)>8_000_000: raise HTTPException(413,'Planilha maior que 8 MB')
+ try:
+  wb=load_workbook(io.BytesIO(content),read_only=True,data_only=True)
+ except (ValueError,InvalidFileException,KeyError,EOFError) as e:
+  raise HTTPException(422,'Arquivo Excel inválido') from e
+ try:
+  if 'ESTOQUE' not in wb.sheetnames: raise HTTPException(422,'Aba ESTOQUE não encontrada')
+  ws=wb['ESTOQUE'];out=[];seen=set()
+  for rownum,row in enumerate(ws.iter_rows(min_row=5,max_col=16,values_only=True),start=5):
+   model,capacity,color,imei=row[1],row[2],row[4],row[6]
+   if not any(row):continue
+   if not model and not imei:continue
+   raw_imei=str(imei or '').strip()
+   imei_clean=re.sub(r'\D','',raw_imei)
+   errors=[]
+   if len(imei_clean)!=15:errors.append('IMEI deve conter 15 dígitos')
+   if imei_clean in seen:errors.append('IMEI repetido na planilha')
+   if imei_clean:seen.add(imei_clean)
+   if not str(model or '').strip():errors.append('Modelo ausente')
+   raw_cost=row[13] if row[13] is not None else (Decimal(str(row[8] or 0))+Decimal(str(row[9] or 0)))
+   try:
+    cost=Decimal(str(raw_cost))
+    if not cost.is_finite() or cost<0:raise InvalidOperation()
+    cents=int((cost*100).quantize(Decimal('1'),rounding=ROUND_HALF_UP))
+   except (InvalidOperation,ValueError,TypeError):
+    cents=0;errors.append('Custo inválido')
+   raw_status=str(row[15] or '').strip().upper()
+   raw_status=''.join(c for c in unicodedata.normalize('NFD',raw_status) if unicodedata.category(c)!='Mn')
+   status_map={'DISPONIVEL':'available','VENDIDO':'sold','VENDIDA':'sold','EM MANUTENCAO':'maintenance','MANUTENCAO':'maintenance'}
+   status=status_map.get(raw_status)
+   if not status:errors.append('Situação não reconhecida: '+str(row[15] or '(vazia)'))
+   if len(str(model or ''))>120 or len(str(capacity or ''))>60 or len(str(color or ''))>60:errors.append('Texto excede o limite')
+   out.append({'line':rownum,'model':str(model or '').strip(),'imei':imei_clean,'capacity':str(capacity or '').strip(),'color':str(color or '').strip(),'cost_cents':cents,'status':status,'errors':errors})
+   if len(out)>2000:raise HTTPException(422,'Limite de 2000 aparelhos por arquivo')
+  return out
+ finally:wb.close()
+
+@app.post('/imports/inventory/preview')
+async def preview_inventory(file:UploadFile=File(...),u:User=Depends(actor),s:Session=Depends(db)):
+ if u.role!='admin':raise HTTPException(403,'Apenas administrador')
+ if not file.filename or not file.filename.lower().endswith('.xlsx'):raise HTTPException(422,'Envie arquivo .xlsx')
+ data=await file.read(8_000_001)
+ rows=_inventory_from_excel(data)
+ existing=set(s.scalars(select(Device.imei).where(Device.tenant_id==u.tenant_id)).all())
+ for r in rows:
+  if r['imei'] in existing:r['errors'].append('IMEI já cadastrado no sistema')
+ return {'total':len(rows),'ready':sum(not r['errors'] for r in rows),'skipped':sum(bool(r['errors']) for r in rows),'rows':rows}
+
+@app.post('/imports/inventory/confirm')
+async def confirm_inventory(file:UploadFile=File(...),u:User=Depends(actor),s:Session=Depends(db)):
+ if u.role!='admin':raise HTTPException(403,'Apenas administrador')
+ if not file.filename or not file.filename.lower().endswith('.xlsx'):raise HTTPException(422,'Envie arquivo .xlsx')
+ rows=_inventory_from_excel(await file.read(8_000_001))
+ existing=set(s.scalars(select(Device.imei).where(Device.tenant_id==u.tenant_id)).all())
+ created=0;skipped=[]
+ for r in rows:
+  if r['imei'] in existing:r['errors'].append('IMEI já cadastrado no sistema')
+  if r['errors']:
+   skipped.append({'line':r['line'],'imei':r['imei'],'reason':'; '.join(r['errors'])});continue
+  d=Device(tenant_id=u.tenant_id,model=r['model'],imei=r['imei'],capacity=r['capacity'],color=r['color'],cost_cents=r['cost_cents'],status=r['status'])
+  s.add(d);s.flush();audit(s,u,'device.imported',d.id);existing.add(r['imei']);created+=1
+ s.commit()
+ return {'created':created,'skipped':len(skipped),'details':skipped}
