@@ -79,6 +79,28 @@ class Installment(Base):
  paid_at:Mapped[Optional[datetime]]=mapped_column(DateTime(timezone=True),nullable=True)
  confirmed_by:Mapped[Optional[str]]=mapped_column(String(36),nullable=True)
  proof_id:Mapped[Optional[str]]=mapped_column(String(36),nullable=True)
+class HistoricalSale(Base):
+ __tablename__='historical_sales'
+ id:Mapped[str]=mapped_column(String(36),primary_key=True,default=lambda:str(uuid.uuid4()))
+ tenant_id:Mapped[str]=mapped_column(ForeignKey('tenants.id'),index=True)
+ sale_number:Mapped[str]=mapped_column(String(40))
+ contract_id:Mapped[str]=mapped_column(String(36))
+ __table_args__=(UniqueConstraint('tenant_id','sale_number'),)
+
+class HistoricalReceipt(Base):
+ __tablename__='historical_receipts'
+ id:Mapped[str]=mapped_column(String(36),primary_key=True,default=lambda:str(uuid.uuid4()))
+ tenant_id:Mapped[str]=mapped_column(ForeignKey('tenants.id'),index=True)
+ installment_id:Mapped[str]=mapped_column(String(36))
+ amount_cents:Mapped[int]=mapped_column(Integer)
+ excess_cents:Mapped[int]=mapped_column(Integer,default=0)
+ paid_at:Mapped[Optional[datetime]]=mapped_column(DateTime(timezone=True),nullable=True)
+ __table_args__=(UniqueConstraint('tenant_id','installment_id'),)
+
+def historical_finance(s,tenant_id):
+ receipts=s.scalars(select(HistoricalReceipt).where(HistoricalReceipt.tenant_id==tenant_id)).all()
+ return {r.installment_id:r for r in receipts}
+
 class Audit(Base):
  __tablename__='audit_logs'
  id:Mapped[str]=mapped_column(String(36),primary_key=True,default=lambda:str(uuid.uuid4()))
@@ -360,7 +382,7 @@ def dashboard(u:User=Depends(actor),s:Session=Depends(db)):
  open_ps=[p for p in installments if p.contract_id in active and p.status!='paid']
  def aware(dt): return dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else dt
  return {'active_contracts':len(active),'draft_contracts':sum(c.status=='draft' for c in contracts),
-  'received_cents':sum(p.amount_cents for p in installments if p.status=='paid'),
+  'received_cents':sum(p.amount_cents for p in installments if p.status=='paid' and p.id not in historical_finance(s,u.tenant_id))+sum(r.amount_cents for r in historical_finance(s,u.tenant_id).values()),
   'outstanding_cents':sum(p.amount_cents for p in open_ps),
   'overdue_count':sum(aware(p.due_at)<now for p in open_ps),
   'pending_proofs':sum(p.status=='review' for p in open_ps)}
@@ -643,7 +665,7 @@ def financial_report(u:User=Depends(actor),s:Session=Depends(db)):
  active_ids={c.id for c in cs if c.status=='active'}
  now=datetime.now(timezone.utc)
  open_ps=[p for p in ps if p.contract_id in active_ids and p.status!='paid']
- return {'received_cents':sum(p.amount_cents for p in ps if p.status=='paid'),
+ return {'received_cents':sum(p.amount_cents for p in ps if p.status=='paid' and p.id not in historical_finance(s,u.tenant_id))+sum(r.amount_cents for r in historical_finance(s,u.tenant_id).values()),
  'receivable_cents':sum(p.amount_cents for p in open_ps),
  'overdue_cents':sum(p.amount_cents for p in open_ps if (p.due_at.replace(tzinfo=timezone.utc) if p.due_at.tzinfo is None else p.due_at)<now),
  'invested_cents':sum(d.cost_cents for d in ds if d.status=='rented'),
@@ -1217,3 +1239,68 @@ async def preview_history(file:UploadFile=File(...),u:User=Depends(actor),s:Sess
   projected_future=sum(p['open_cents'] for p in projected if p['due']>=now_date)
   return {'read_only':True,'sales_total':len(sales),'installments_total':len(installments),'sales_with_errors':sum(bool(x['errors']) for x in sales),'installments_with_errors':sum(bool(x['errors']) for x in installments),'partial_payments':sum(bool(x['amount_cents'] and x['paid_cents'] and 0<x['paid_cents']<x['amount_cents']) for x in installments),'projected_total':len(projected),'projected_missing':sum(p['source']=='projetada' for p in projected),'projected_overdue_cents':projected_overdue,'projected_future_cents':projected_future,'projected_excess_cents':sum(p['excess_cents'] for p in projected),'projection_warnings':projection_warnings,'projected_installments':projected,'sales':sales,'installments':installments,'notice':'Prévia apenas. Nenhum cliente, venda, contrato, parcela ou pagamento foi gravado.'}
  finally:wb.close()
+
+
+@app.post('/imports/history/confirm')
+async def confirm_history(file:UploadFile=File(...),u:User=Depends(actor),s:Session=Depends(db)):
+ if u.role!='admin':raise HTTPException(403,'Apenas administrador')
+ # Reuse exactly the same parsing and validation as the preview.
+ report=await preview_history(file,u,s)
+ if report['sales_with_errors'] or report['installments_with_errors'] or report['projection_warnings']:
+  raise HTTPException(422,'A planilha contém pendências impeditivas. Corrija antes de importar.')
+ if report['projected_total']==0:raise HTTPException(422,'Nenhuma parcela prevista')
+ sale_map={x['sale_id']:x for x in report['sales']}
+ existing={x.sale_number for x in s.scalars(select(HistoricalSale).where(HistoricalSale.tenant_id==u.tenant_id)).all()}
+ new_sales=[x for x in report['sales'] if x['sale_id'] not in existing]
+ if not new_sales:return {'created_sales':0,'created_installments':0,'skipped_sales':len(report['sales']),'message':'Vendas já importadas; nenhuma duplicação.'}
+ devices={x.imei:x for x in s.scalars(select(Device).where(Device.tenant_id==u.tenant_id)).all()}
+ customers=s.scalars(select(Customer).where(Customer.tenant_id==u.tenant_id)).all()
+ def norm(v):return re.sub(r'\s+',' ',(v or '').strip()).casefold()
+ # Name-only matches are unsafe: only reuse unambiguous existing records.
+ names={}
+ for c in customers:names.setdefault(norm(c.name),[]).append(c)
+ new_ids={x['sale_id'] for x in new_sales}
+ for x in new_sales:
+  if x['imei'] not in devices:raise HTTPException(409,'IMEI não encontrado: '+x['imei'])
+  if len(names.get(norm(x['customer']),[]))>1:raise HTTPException(409,'Clientes homônimos: '+x['customer'])
+  if devices[x['imei']].status not in ('available','rented','sold'):
+   raise HTTPException(409,'Situação do aparelho incompatível: '+x['imei'])
+  other=s.scalar(select(Contract).where(Contract.tenant_id==u.tenant_id,Contract.device_id==devices[x['imei']].id))
+  if other:raise HTTPException(409,'Aparelho já vinculado a outro contrato: '+x['imei'])
+  if (x['installments_count'] or 0)>60:raise HTTPException(422,'Limite de parcelas excedido')
+ # Single transaction; no commit until everything is ready.
+ created_installments=0
+ try:
+  for x in new_sales:
+   key=norm(x['customer']); matches=names.get(key,[])
+   if matches:customer=matches[0]
+   else:
+    customer=Customer(tenant_id=u.tenant_id,name=x['customer'],cpf=None,phone=x['phone'] or '',email='',address='')
+    s.add(customer);s.flush();names[key]=[customer]
+   dev=devices[x['imei']]
+   first=datetime.fromisoformat(x['first_due']).replace(tzinfo=timezone.utc) if x['first_due'] else None
+   c=Contract(tenant_id=u.tenant_id,customer_id=customer.id,device_id=dev.id,status='active',
+    installments_count=x['installments_count'] or 0,installment_cents=x['installment_cents'] or 0,
+    entry_cents=x['entry_cents'] or 0,first_due=first)
+   s.add(c);s.flush()
+   s.add(HistoricalSale(tenant_id=u.tenant_id,sale_number=x['sale_id'],contract_id=c.id))
+   dev.status='rented'
+   for r in report['projected_installments']:
+    if r['sale_id']!=x['sale_id']:continue
+    paid=r['paid_cents']; nominal=r['amount_cents']; outstanding=r['open_cents']
+    # The installment amount reflects remaining balance; receipts preserve known payments.
+    inst=Installment(tenant_id=u.tenant_id,contract_id=c.id,number=r['number'],
+      amount_cents=nominal if outstanding==0 else outstanding,
+      due_at=datetime.fromisoformat(r['due']).replace(tzinfo=timezone.utc),
+      status='paid' if outstanding==0 else 'pending',
+      paid_at=datetime.now(timezone.utc) if outstanding==0 else None)
+    s.add(inst);s.flush();created_installments+=1
+    if paid:
+     s.add(HistoricalReceipt(tenant_id=u.tenant_id,installment_id=inst.id,
+       amount_cents=paid,excess_cents=r['excess_cents']))
+   audit(s,u,'historical.sale.imported',c.id)
+  s.commit()
+ except Exception:
+  s.rollback();raise
+ return {'created_sales':len(new_sales),'created_installments':created_installments,
+         'skipped_sales':len(existing & set(sale_map)),'message':'Importação concluída.'}
