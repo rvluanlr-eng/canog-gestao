@@ -1105,3 +1105,81 @@ async def confirm_inventory(file:UploadFile=File(...),u:User=Depends(actor),s:Se
   s.add(d);s.flush();audit(s,u,'device.imported',d.id);existing.add(r['imei']);created+=1
  s.commit()
  return {'created':created,'skipped':len(skipped),'details':skipped}
+
+
+# Historical sales migration: read-only validation stage. Does not write to database.
+@app.post('/imports/history/preview')
+async def preview_history(file:UploadFile=File(...),u:User=Depends(actor),s:Session=Depends(db)):
+ from openpyxl import load_workbook
+ from openpyxl.utils.exceptions import InvalidFileException
+ from datetime import datetime,timedelta
+ from decimal import Decimal,InvalidOperation
+ if u.role!='admin': raise HTTPException(403,'Apenas administrador')
+ if not (file.filename or '').lower().endswith('.xlsx'): raise HTTPException(422,'Envie um arquivo .xlsx')
+ raw=await file.read(8_000_001)
+ if len(raw)>8_000_000: raise HTTPException(413,'Planilha maior que 8 MB')
+ try: wb=load_workbook(io.BytesIO(raw),read_only=True,data_only=True)
+ except (ValueError,InvalidFileException,KeyError,EOFError) as exc: raise HTTPException(422,'Excel inválido') from exc
+ try:
+  if not {'VENDAS','PARCELAS'}.issubset(wb.sheetnames): raise HTTPException(422,'Abas VENDAS e PARCELAS são obrigatórias')
+  devices={d.imei:d for d in s.scalars(select(Device).where(Device.tenant_id==u.tenant_id)).all()}
+  customers=s.scalars(select(Customer).where(Customer.tenant_id==u.tenant_id)).all()
+  existing_names={re.sub(r'\s+',' ',c.name.strip()).casefold() for c in customers}
+  def number(v):
+   try:
+    d=Decimal(str(v if v is not None else 0))
+    if not d.is_finite():raise InvalidOperation()
+    return int((d*100).quantize(Decimal('1'),rounding=ROUND_HALF_UP))
+   except (ValueError,TypeError,InvalidOperation):return None
+  def dt(v):
+   if isinstance(v,datetime):return v.date().isoformat()
+   if isinstance(v,date):return v.isoformat()
+   try:
+    n=float(v)
+    if 1<=n<=100000:return (datetime(1899,12,30)+timedelta(days=n)).date().isoformat()
+   except (ValueError,TypeError,OverflowError):pass
+   return None
+  sales=[];sale_ids=set();sale_lookup={};duplicates=[]
+  for line,row in enumerate(wb['VENDAS'].iter_rows(min_row=5,max_col=18,values_only=True),5):
+   if not row[0] and not row[3]:continue
+   if len(sales)>=2000:raise HTTPException(422,'Limite de 2000 vendas')
+   errors=[];warnings=[]
+   try: sale_id=str(int(float(row[0])))
+   except (ValueError,TypeError,OverflowError):sale_id='';errors.append('Número da venda inválido')
+   if sale_id in sale_ids:errors.append('Número da venda repetido')
+   sale_ids.add(sale_id)
+   name=str(row[3] or '').strip();imei=re.sub(r'\D','',str(row[7] or ''))
+   if not name:errors.append('Cliente sem nome')
+   if not imei or imei not in devices:errors.append('IMEI não encontrado no estoque importado')
+   if not str(row[4] or '').strip():warnings.append('Telefone ausente')
+   if name and re.sub(r'\s+',' ',name).casefold() not in existing_names:warnings.append('Novo cliente: CPF pendente; conferir homônimos')
+   if row[12]:warnings.append('Troca de aparelho: conferir valores e origem')
+   count=number(row[13]);installment=number(row[14]);entry=number(row[10]);due=dt(row[15]);sold=dt(row[1]);
+   if count is None or count<0 or count%100:errors.append('Quantidade de parcelas inválida')
+   if installment is None or installment<0:errors.append('Valor da parcela inválido')
+   if entry is None or entry<0:errors.append('Entrada inválida')
+   if not sold:errors.append('Data da venda inválida')
+   if count and count>0 and not due:errors.append('Primeiro vencimento inválido')
+   item={'line':line,'sale_id':sale_id,'date':sold,'type':str(row[2] or ''),'customer':name,'phone':str(row[4] or ''),'imei':imei,'device_found':imei in devices,'installments_count':count//100 if count is not None else None,'installment_cents':installment,'entry_cents':entry,'first_due':due,'errors':errors,'warnings':warnings}
+   sales.append(item)
+   if sale_id and sale_id not in sale_lookup:sale_lookup[sale_id]=item
+  installments=[];seen=set()
+  for line,row in enumerate(wb['PARCELAS'].iter_rows(min_row=5,max_col=15,values_only=True),5):
+   if row[0] is None and row[1] is None:continue
+   if len(installments)>=12000:raise HTTPException(422,'Limite de 12000 parcelas')
+   errors=[];warnings=[]
+   try: sid=str(int(float(row[0])));n=int(float(row[1]))
+   except (ValueError,TypeError,OverflowError):sid='';n=0;errors.append('Identificação da parcela inválida')
+   if (sid,n) in seen:errors.append('Parcela duplicada na planilha')
+   seen.add((sid,n))
+   if sid not in sale_lookup:errors.append('Venda não encontrada')
+   amount=number(row[5]);paid=number(row[7]);due=dt(row[4]);paid_at=dt(row[6]);
+   if amount is None or amount<=0:errors.append('Valor da parcela inválido')
+   if paid is None or paid<0:errors.append('Valor pago inválido')
+   if not due:errors.append('Vencimento inválido')
+   if paid and not paid_at:warnings.append('Pagamento sem data')
+   if amount is not None and paid is not None and paid>amount:warnings.append('Pagamento acima do valor nominal; conferir excedente')
+   if amount and paid and 0<paid<amount:warnings.append('Pagamento parcial: requer histórico de recebimentos')
+   installments.append({'line':line,'sale_id':sid,'number':n,'due':due,'amount_cents':amount,'paid_cents':paid,'paid_at':paid_at,'payment_method':str(row[8] or ''),'spreadsheet_status':str(row[9] or ''),'errors':errors,'warnings':warnings})
+  return {'read_only':True,'sales_total':len(sales),'installments_total':len(installments),'sales_with_errors':sum(bool(x['errors']) for x in sales),'installments_with_errors':sum(bool(x['errors']) for x in installments),'partial_payments':sum(bool(x['amount_cents'] and x['paid_cents'] and 0<x['paid_cents']<x['amount_cents']) for x in installments),'sales':sales,'installments':installments,'notice':'Prévia apenas. Nenhum cliente, venda, contrato, parcela ou pagamento foi gravado.'}
+ finally:wb.close()
