@@ -1,7 +1,7 @@
 
 """Inicializa a empresa e o administrador apenas quando necessário."""
 import os
-from sqlalchemy import select
+from sqlalchemy import select, text
 from main import Base, engine, SessionLocal, Tenant, User, pw_hash
 
 email = os.environ['ADMIN_EMAIL'].strip().lower()
@@ -10,6 +10,13 @@ password = os.environ['ADMIN_PASSWORD']
 if len(password) < 12:
     raise ValueError('ADMIN_PASSWORD deve ter ao menos 12 caracteres')
 
+# Imported historical customers may not have CPF; preserve strict CPF requirement in manual registration.
+with engine.begin() as conn:
+    if engine.dialect.name == 'postgresql':
+        conn.execute(text('ALTER TABLE customers ALTER COLUMN cpf DROP NOT NULL'))
+    elif engine.dialect.name == 'sqlite':
+        # SQLite requires a table rebuild; production uses PostgreSQL.
+        pass
 Base.metadata.create_all(engine)
 
 with SessionLocal() as s:
