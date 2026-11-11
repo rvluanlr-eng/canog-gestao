@@ -1181,5 +1181,39 @@ async def preview_history(file:UploadFile=File(...),u:User=Depends(actor),s:Sess
    if amount is not None and paid is not None and paid>amount:warnings.append('Pagamento acima do valor nominal; conferir excedente')
    if amount and paid and 0<paid<amount:warnings.append('Pagamento parcial: requer histórico de recebimentos')
    installments.append({'line':line,'sale_id':sid,'number':n,'due':due,'amount_cents':amount,'paid_cents':paid,'paid_at':paid_at,'payment_method':str(row[8] or ''),'spreadsheet_status':str(row[9] or ''),'errors':errors,'warnings':warnings})
-  return {'read_only':True,'sales_total':len(sales),'installments_total':len(installments),'sales_with_errors':sum(bool(x['errors']) for x in sales),'installments_with_errors':sum(bool(x['errors']) for x in installments),'partial_payments':sum(bool(x['amount_cents'] and x['paid_cents'] and 0<x['paid_cents']<x['amount_cents']) for x in installments),'sales':sales,'installments':installments,'notice':'Prévia apenas. Nenhum cliente, venda, contrato, parcela ou pagamento foi gravado.'}
+  # Projeção conservadora: usa condições da venda, sem presumir quitação.
+  # Parcelas efetivamente lançadas na aba PARCELAS prevalecem sobre projeções.
+  from calendar import monthrange
+  recorded={(p['sale_id'],p['number']):p for p in installments if not p['errors']}
+  projected=[];projection_warnings=[]
+  for sale in sales:
+   if sale['errors']:continue
+   count=sale['installments_count'] or 0
+   if count>60:
+    projection_warnings.append('Venda '+sale['sale_id']+': quantidade acima de 60; confira antes de importar')
+    continue
+   if count==0:continue
+   if not sale['first_due'] or sale['installment_cents'] is None:continue
+   first=date.fromisoformat(sale['first_due'])
+   for n in range(1,count+1):
+    month_idx=(first.month-1)+(n-1)
+    year=first.year+month_idx//12;month=month_idx%12+1
+    due=date(year,month,min(first.day,monthrange(year,month)[1])).isoformat()
+    rec=recorded.get((sale['sale_id'],n))
+    amount=rec['amount_cents'] if rec else sale['installment_cents']
+    paid=rec['paid_cents'] if rec else 0
+    if amount is None or amount<0:continue
+    applied=min(paid or 0,amount)
+    projected.append({'sale_id':sale['sale_id'],'number':n,'due':rec['due'] if rec else due,
+      'amount_cents':amount,'paid_cents':paid or 0,'open_cents':amount-applied,
+      'excess_cents':max(0,(paid or 0)-amount),'source':'planilha' if rec else 'projetada',
+      'payment_known':bool(rec),'customer':sale['customer']})
+  projected_keys={(p['sale_id'],p['number']) for p in projected}
+  for rec in installments:
+   if not rec['errors'] and (rec['sale_id'],rec['number']) not in projected_keys:
+    projection_warnings.append('Venda '+rec['sale_id']+', parcela '+str(rec['number'])+': lançamento fora da sequência projetada')
+  now_date=date.today().isoformat()
+  projected_overdue=sum(p['open_cents'] for p in projected if p['due']<now_date)
+  projected_future=sum(p['open_cents'] for p in projected if p['due']>=now_date)
+  return {'read_only':True,'sales_total':len(sales),'installments_total':len(installments),'sales_with_errors':sum(bool(x['errors']) for x in sales),'installments_with_errors':sum(bool(x['errors']) for x in installments),'partial_payments':sum(bool(x['amount_cents'] and x['paid_cents'] and 0<x['paid_cents']<x['amount_cents']) for x in installments),'projected_total':len(projected),'projected_missing':sum(p['source']=='projetada' for p in projected),'projected_overdue_cents':projected_overdue,'projected_future_cents':projected_future,'projected_excess_cents':sum(p['excess_cents'] for p in projected),'projection_warnings':projection_warnings,'projected_installments':projected,'sales':sales,'installments':installments,'notice':'Prévia apenas. Nenhum cliente, venda, contrato, parcela ou pagamento foi gravado.'}
  finally:wb.close()
