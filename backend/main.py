@@ -79,6 +79,27 @@ class Installment(Base):
  paid_at:Mapped[Optional[datetime]]=mapped_column(DateTime(timezone=True),nullable=True)
  confirmed_by:Mapped[Optional[str]]=mapped_column(String(36),nullable=True)
  proof_id:Mapped[Optional[str]]=mapped_column(String(36),nullable=True)
+class CollectionEvent(Base):
+ __tablename__='collection_events'
+ id:Mapped[str]=mapped_column(String(36),primary_key=True,default=lambda:str(uuid.uuid4()))
+ tenant_id:Mapped[str]=mapped_column(ForeignKey('tenants.id'),index=True)
+ customer_id:Mapped[str]=mapped_column(String(36),index=True)
+ contract_id:Mapped[Optional[str]]=mapped_column(String(36),nullable=True)
+ channel:Mapped[str]=mapped_column(String(25))
+ outcome:Mapped[str]=mapped_column(String(40))
+ notes:Mapped[str]=mapped_column(Text,default='')
+ follow_up_date:Mapped[Optional[date]]=mapped_column(nullable=True)
+ created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),default=lambda:datetime.now(timezone.utc))
+ created_by:Mapped[str]=mapped_column(String(36))
+
+class CollectionEventIn(BaseModel):
+ customer_id:str
+ contract_id:Optional[str]=None
+ channel:str
+ outcome:str
+ notes:str=Field(default='',max_length=2000)
+ follow_up_date:Optional[date]=None
+
 class HistoricalSale(Base):
  __tablename__='historical_sales'
  id:Mapped[str]=mapped_column(String(36),primary_key=True,default=lambda:str(uuid.uuid4()))
@@ -234,6 +255,29 @@ def login(body:Login,s:Session=Depends(db)):
  if not u or not pw_verify(body.password,u.password_hash): raise HTTPException(401,'Credenciais inválidas')
  token=jwt.encode({'sub':u.id,'tenant':u.tenant_id,'aud':'admin','exp':datetime.now(timezone.utc)+timedelta(hours=8)},SECRET,algorithm='HS256')
  return {'access_token':token,'token_type':'bearer','role':u.role}
+@app.get('/collections/history')
+def collection_history(customer_id:Optional[str]=None,u:User=Depends(actor),s:Session=Depends(db)):
+ if u.role!='admin': raise HTTPException(403,'Apenas administrador')
+ q=select(CollectionEvent).where(CollectionEvent.tenant_id==u.tenant_id)
+ if customer_id:
+  scoped(s,Customer,customer_id,u)
+  q=q.where(CollectionEvent.customer_id==customer_id)
+ rows=s.scalars(q.order_by(CollectionEvent.created_at.desc(),CollectionEvent.id.desc())).all()
+ return [{'id':r.id,'customer_id':r.customer_id,'contract_id':r.contract_id,'channel':r.channel,'outcome':r.outcome,'notes':r.notes,'follow_up_date':r.follow_up_date.isoformat() if r.follow_up_date else None,'created_at':r.created_at.isoformat(),'created_by':r.created_by} for r in rows]
+
+@app.post('/collections/history',status_code=201)
+def add_collection_history(body:CollectionEventIn,u:User=Depends(actor),s:Session=Depends(db)):
+ if u.role!='admin': raise HTTPException(403,'Apenas administrador')
+ if body.channel not in ('whatsapp','phone','other'): raise HTTPException(422,'Canal inválido')
+ if body.outcome not in ('no_reply','promise','negotiation','payment_reported','contacted','other'): raise HTTPException(422,'Resultado inválido')
+ scoped(s,Customer,body.customer_id,u)
+ if body.contract_id:
+  c=scoped(s,Contract,body.contract_id,u)
+  if c.customer_id!=body.customer_id: raise HTTPException(422,'Contrato não pertence ao cliente')
+ event=CollectionEvent(tenant_id=u.tenant_id,customer_id=body.customer_id,contract_id=body.contract_id,channel=body.channel,outcome=body.outcome,notes=body.notes.strip(),follow_up_date=body.follow_up_date,created_by=u.id)
+ s.add(event);s.flush();audit(s,u,'collection.recorded',event.id);s.commit()
+ return {'id':event.id,'saved':True}
+
 @app.get('/customers')
 def customers(u:User=Depends(actor),s:Session=Depends(db)):
  return [{'id':c.id,'name':c.name,'phone':c.phone,'cpf':c.cpf,'email':c.email,'address':c.address} for c in s.scalars(select(Customer).where(Customer.tenant_id==u.tenant_id)).all()]
