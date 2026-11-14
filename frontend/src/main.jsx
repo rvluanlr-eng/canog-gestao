@@ -163,6 +163,22 @@ return <div className="app"><aside className={'sidebar '+(menu?'show':'')}><div 
   const taxa = Number(sim.rate_pct) || 0;
   const parcelaFixa = Number(sim.negotiated_installment_cents || 0) / 100;
   const entradaTotal = entrada + troca;
+   const parcelaDesejada = Math.max(0, Number(sim.parcela_desejada_cents || 0) / 100);
+   const saldoParaSugestao = Math.max(0, venda - Math.min(venda, entradaTotal));
+   const sugestao = (() => {
+     if (modalidade !== 'negociada' || parcelaDesejada <= 0 || saldoParaSugestao <= 0) return null;
+     const candidatos = [];
+     for (let quantidade = 1; quantidade <= 18; quantidade++) {
+       const taxaCalculada = (parcelaDesejada * quantidade / saldoParaSugestao - 1) * 100 / quantidade;
+       if (taxaCalculada >= 0 && taxaCalculada <= 20) {
+         const taxaArredondada = Math.round(taxaCalculada * 100) / 100;
+         const parcelaResultante = saldoParaSugestao * (1 + taxaArredondada * quantidade / 100) / quantidade;
+         candidatos.push({quantidade, taxa:taxaArredondada, parcela:parcelaResultante, distancia:Math.abs(taxaArredondada - taxa) + Math.abs(quantidade - n) * 0.15});
+       }
+     }
+     candidatos.sort((a,b) => a.distancia - b.distancia);
+     return candidatos[0] || null;
+   })();
 
   const calculo = calcularNegociacao({
     custo,
@@ -338,6 +354,30 @@ return <div className="app"><aside className={'sidebar '+(menu?'show':'')}><div 
             </button>
           ))}
         </div>
+
+         {modalidade === 'negociada' && (
+           <div style={{margin:'18px 0',padding:16,border:'1px solid #27719b',borderRadius:10}}>
+             <h3 style={{marginTop:0}}>Valor da parcela desejado</h3>
+             <p>Informe quanto o cliente deseja pagar por período. O sistema sugere de 1 a 18 parcelas, com juros simples de 0% a 20% por período.</p>
+             <div className="form-grid">
+               {campoDinheiro('Parcela desejada (R$)', 'parcela_desejada_cents')}
+               <div style={{display:'flex',alignItems:'flex-end'}}>
+                 <button type="button" className="primary" disabled={!sugestao} onClick={() => {
+                   if (!sugestao) return;
+                   setSim(anterior => ({...anterior,count:sugestao.quantidade,rate_pct:sugestao.taxa}));
+                 }}>Aplicar sugestão</button>
+               </div>
+             </div>
+             {sugestao ? (
+               <p role="status">Sugestão: <b>{sugestao.quantidade}x de {reais(sugestao.parcela)}</b> com juros de <b>{sugestao.taxa.toFixed(2)}% por período</b>. Clique em Aplicar sugestão para atualizar o cálculo.</p>
+             ) : parcelaDesejada > 0 ? (
+               <p role="status">Não há combinação possível de 1 a 18 parcelas com juros entre 0% e 20% para esse valor. Ajuste a parcela desejada ou a entrada.</p>
+             ) : (
+               <p><small>Preencha a parcela desejada para receber uma sugestão.</small></p>
+             )}
+             <small>A sugestão é aproximada e considera juros simples. A taxa é calculada por período (mensal, semanal ou diário, conforme selecionado), sem conversão automática entre periodicidades.</small>
+           </div>
+         )}
 
         <h3>Parcelamento</h3>
         <div className="actions" style={{flexWrap:'wrap'}}>
