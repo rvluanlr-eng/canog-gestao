@@ -69,6 +69,40 @@ function calcularNegociacao({
   };
 }
 
+// Fluxo econômico da entrada: dinheiro parcelado; aparelho de troca considerado no ato.
+// Valores em centavos para evitar diferenças de arredondamento na divisão da entrada.
+function calcularFluxoEntrada({custo, entradaDinheiro, troca, diluicao, parcelas, valorParcela}) {
+  const centavos = v => Math.round(Math.max(0, Number(v) || 0) * 100);
+  const custoCent = centavos(custo);
+  const entradaCent = centavos(entradaDinheiro);
+  const trocaCent = centavos(troca);
+  const partes = Math.max(1, Math.min(3, Math.round(Number(diluicao) || 1)));
+  const n = Math.max(1, Math.round(Number(parcelas) || 1));
+  const parcelaCent = centavos(valorParcela);
+  const base = Math.floor(entradaCent / partes);
+  const entradas = Array.from({length: partes}, (_, i) => base + (i === partes - 1 ? entradaCent - base * partes : 0));
+  const recebimentoInicial = entradas[0] + trocaCent;
+  const capitalInicial = Math.max(0, custoCent - recebimentoInicial);
+  let acumulado = recebimentoInicial;
+  let payback = acumulado >= custoCent ? 0 : null;
+  const fluxo = Array.from({length: Math.max(n, partes - 1)}, (_, i) => {
+    const periodo = i + 1;
+    const anterior = acumulado;
+    const entradaNoPeriodo = periodo < partes ? entradas[periodo] : 0;
+    const parcelaNoPeriodo = periodo <= n ? parcelaCent : 0;
+    const recebido = entradaNoPeriodo + parcelaNoPeriodo;
+    acumulado += recebido;
+    if (payback === null && acumulado >= custoCent && recebido > 0) {
+      payback = (periodo - 1) + (custoCent - anterior) / recebido;
+    }
+    return {periodo, entrada: entradaNoPeriodo / 100, parcela: parcelaNoPeriodo / 100,
+      recebido: recebido / 100, acumulado: acumulado / 100,
+      recuperado: Math.min(custoCent, acumulado) / 100};
+  });
+  return {entradas: entradas.map(v => v / 100), recebimentoInicial: recebimentoInicial / 100,
+    capitalInicial: capitalInicial / 100, payback, fluxo};
+}
+
 function App(){const [historyFile,setHistoryFile]=useState(null),[historyPreview,setHistoryPreview]=useState(null),[historyBusy,setHistoryBusy]=useState(false);const [inventoryFile,setInventoryFile]=useState(null),[inventoryPreview,setInventoryPreview]=useState(null),[inventoryBusy,setInventoryBusy]=useState(false);const[token,setToken]=useState(sessionStorage.getItem('canog_token')||''),[portalToken,setPortalToken]=useState(sessionStorage.getItem('canog_portal')||''),[portal,setPortal]=useState(false),[page,setPage]=useState('Dashboard'),[menu,setMenu]=useState(false),[login,setLogin]=useState({email:'',password:''}),[portalLogin,setPortalLogin]=useState({cpf:'',password:'',tenant_id:''}),[customers,setCustomers]=useState([]),[devices,setDevices]=useState([]),[contracts,setContracts]=useState([]),[installments,setInstallments]=useState([]),[dash,setDash]=useState({}),[settings,setSettings]=useState({}),[me,setMe]=useState(null),[message,setMessage]=useState(''),[error,setError]=useState(''),[form,setForm]=useState({}),[selected,setSelected]=useState(''),[docs,setDocs]=useState([]),[sim,setSim]=useState({price_cents:250000,cost_cents:180000,entry_cents:50000,trade_in_cents:0,count:12,rate_pct:8,mode:'price',negotiated_installment_cents:26500}),[result,setResult]=useState(null),[dueAlerts,setDueAlerts]=useState(null),[legalStatus,setLegalStatus]=useState(null),[legalContract,setLegalContract]=useState(''),[legalForm,setLegalForm]=useState({}),[inspectionContract,setInspectionContract]=useState(''),[inspection,setInspection]=useState({checks:{},observations:'',accessories:''}),[financeSearch,setFinanceSearch]=useState(''),[financeStatus,setFinanceStatus]=useState('todos'),[financeMonth,setFinanceMonth]=useState(''),[detailContractId,setDetailContractId]=useState(''),[contractStatusFilter,setContractStatusFilter]=useState('todos'),[financeProofOnly,setFinanceProofOnly]=useState(false),[collectionSearch,setCollectionSearch]=useState(''),[collectionOrder,setCollectionOrder]=useState('dias'),[detailReturnPage,setDetailReturnPage]=useState('Financeiro'),[collectionHistory,setCollectionHistory]=useState([]),[historyCustomer,setHistoryCustomer]=useState(''),[historyForm,setHistoryForm]=useState({channel:'whatsapp',outcome:'no_reply',contract_id:'',notes:'',follow_up_date:''}),[historySaving,setHistorySaving]=useState(false);
 async function req(path,{method='GET',body,auth=token,formData=false}={}){const r=await fetch(BASE+path,{method,headers:{...(auth?{Authorization:'Bearer '+auth}:{}),...(body&&!formData?{'Content-Type':'application/json'}:{})},body:body?(formData?body:JSON.stringify(body)):undefined});if(!r.ok){let e;try{e=await r.json()}catch{}throw Error(typeof e?.detail==='string'?e.detail:JSON.stringify(e?.detail||'Erro '+r.status))}return r.headers.get('content-type')?.includes('application/json')?r.json():r.blob()}
 async function refresh(){if(!token)return;try{const [c,d,k,i,x,s]=await Promise.all(['/customers','/devices','/contracts','/installments','/dashboard','/settings'].map(p=>req(p)));setCustomers(c);setDevices(d);setContracts(k);setInstallments(i);setDash(x);setSettings(s)}catch(e){setError(e.message)}}
@@ -228,12 +262,16 @@ return <div className="app"><aside className={'sidebar '+(menu?'show':'')}><div 
 
   const periodo = sim.periodo || 'Mensal';
   const diluicao = sim.diluicao || 1;
+  const fluxoEntrada = calcularFluxoEntrada({custo, entradaDinheiro:entrada, troca,
+    diluicao, parcelas:n, valorParcela:calculo.valorParcela});
 
   const mensagem = [
     'SIMULAÇÃO CANOG',
     `Produto: ${sim.produto || 'Aparelho'}`,
     `Venda: ${reais(venda)}`,
-    `Entrada total: ${reais(entradaTotal)}`,
+    `Entrada total: ${reais(entradaTotal)} (${diluicao}x no dinheiro)`,
+    `Entrada no ato em dinheiro: ${reais(fluxoEntrada.entradas[0])}`,
+    ...fluxoEntrada.entradas.slice(1).map((valor, i) => `Entrada no período ${i + 1}: ${reais(valor)}`),
     `Parcelamento: ${n}x de ${reais(calculo.valorParcela)}`,
     `Periodicidade: ${periodo}`,
     `Total previsto: ${reais(calculo.totalRecebido)}`,
@@ -421,16 +459,16 @@ return <div className="app"><aside className={'sidebar '+(menu?'show':'')}><div 
         </div>
 
         <div className="stats">
-          {indicador('Capital investido', reais(calculo.capital))}
+          {indicador('Capital a recuperar após o ato', reais(fluxoEntrada.capitalInicial))}
           {indicador('Lucro bruto projetado', reais(calculo.lucroBruto))}
           {indicador('Saldo financiado', reais(calculo.saldo))}
           {indicador('Total de juros', reais(calculo.totalJuros))}
           {indicador('Total da negociação', reais(calculo.totalRecebido))}
-          {indicador('ROI projetado', `${calculo.roi.toFixed(1)}%`)}
+          {indicador('ROI projetado (sobre capital inicial)', fluxoEntrada.capitalInicial > 0 ? `${(calculo.lucroBruto / fluxoEntrada.capitalInicial * 100).toFixed(1)}%` : 'N/A')}
           {indicador('Margem bruta', `${calculo.margem.toFixed(1)}%`)}
           {indicador(
             'Payback estimado',
-            `${calculo.payback.toFixed(1)} períodos`
+            fluxoEntrada.payback === null ? 'Não recuperado no prazo' : `${fluxoEntrada.payback.toFixed(1)} períodos`
           )}
         </div>
 
@@ -441,63 +479,27 @@ return <div className="app"><aside className={'sidebar '+(menu?'show':'')}><div 
           </p>
         )}
 
+        <h3>Entrada diluída — cronograma</h3>
+        <p>O aparelho recebido na troca é considerado no ato pelo valor informado. A entrada em dinheiro é dividida em {diluicao}x: a primeira parte no ato e as demais nos primeiros vencimentos.</p>
+        <div className="table-scroll"><table><thead><tr><th>Momento</th><th>Entrada em dinheiro</th><th>Parcela normal</th><th>Recebimento econômico acumulado</th></tr></thead><tbody>
+          <tr><td>No ato</td><td>{reais(fluxoEntrada.entradas[0])}</td><td>—</td><td>{reais(fluxoEntrada.recebimentoInicial)}</td></tr>
+          {fluxoEntrada.fluxo.map(item => <tr key={item.periodo}><td>Período {item.periodo}</td><td>{reais(item.entrada)}</td><td>{reais(item.parcela)}</td><td>{reais(item.acumulado)}</td></tr>)}
+        </tbody></table></div>
         <h3>Recuperação do capital</h3>
-        <p>
-          Recuperação estimada após {' '}
-          <b>{Math.ceil(calculo.payback)} parcelas</b>,
-          considerando o recebimento integral de cada parcela.
-        </p>
-
-        <div style={{
-          display:'flex',
-          alignItems:'flex-end',
-          gap:8,
-          minHeight:150,
-          overflowX:'auto',
-          padding:'12px 0'
-        }}>
-          {Array.from({length:n}, (_, i) => {
-            const recuperado = Math.min(
-              calculo.capital,
-              calculo.valorParcela * (i + 1)
-            );
-            const proporcao = calculo.capital > 0
-              ? recuperado / calculo.capital
-              : 1;
-
-            return (
-              <div
-                key={i}
-                title={`Parcela ${i + 1}: ${reais(recuperado)} recuperados`}
-                style={{
-                  flex:'1 0 28px',
-                  display:'flex',
-                  flexDirection:'column',
-                  alignItems:'center',
-                  gap:6
-                }}
-              >
-                <div style={{
-                  height:Math.max(5, proporcao * 110),
-                  width:'75%',
-                  borderRadius:'5px 5px 0 0',
-                  background:'#29d3b1'
-                }}/>
-                <small>{i + 1}</small>
-              </div>
-            );
-          })}
+        <p>{fluxoEntrada.payback === null
+          ? 'O custo não é recuperado dentro do cronograma simulado.'
+          : fluxoEntrada.payback === 0
+            ? 'Custo recuperado no ato da negociação.'
+            : `Recuperação estimada no período ${Math.ceil(fluxoEntrada.payback)} (${fluxoEntrada.payback.toFixed(1)} períodos), considerando todos os recebimentos previstos.`}</p>
+        <div style={{display:'flex',alignItems:'flex-end',gap:8,minHeight:150,overflowX:'auto',padding:'12px 0'}}>
+          {fluxoEntrada.fluxo.map(item => <div key={item.periodo}
+            title={`Período ${item.periodo}: ${reais(item.recuperado)} do custo recuperados`}
+            style={{flex:'1 0 28px',display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+            <div style={{height:Math.max(5,custo > 0 ? item.recuperado / custo * 110 : 110),width:'75%',borderRadius:'5px 5px 0 0',background:'#29d3b1'}}/>
+            <small>{item.periodo}</small>
+          </div>)}
         </div>
-
-        <p>
-          <small>
-            Simulação ilustrativa com juros simples. Não considera
-            inadimplência, despesas operacionais ou impostos.
-            A entrada diluída é informativa nesta versão e não altera
-            o fluxo de recebimento. Os indicadores de recuperação
-            pressupõem entrada recebida integralmente.
-          </small>
-        </p>
+        <p><small>Simulação ilustrativa de juros simples. A diluição altera o momento dos recebimentos, não o valor total da entrada, os juros ou o valor das parcelas normais. O ROI utiliza o capital a recuperar após o ato; o aparelho de troca é tratado como valor econômico, não como dinheiro em caixa. Não considera inadimplência, despesas operacionais, impostos ou desvalorização do aparelho recebido. O cronograma não é automaticamente transferido para contratos.</small></p>
 
         <button
           type="button"
