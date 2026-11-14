@@ -518,13 +518,13 @@ const mensagem = [
         </div>
         <p><small>Simulação ilustrativa de juros simples. A diluição altera o momento dos recebimentos, não o valor total da entrada, os juros ou o valor das parcelas normais. O ROI utiliza o capital a recuperar após o ato; o aparelho de troca é tratado como valor econômico, não como dinheiro em caixa. Não considera inadimplência, despesas operacionais, impostos ou desvalorização do aparelho recebido. O cronograma não é automaticamente transferido para contratos.</small></p>
 
+        <div className="actions" style={{flexWrap:'wrap',marginBottom:14}}>
+          <button type="button" className="primary" onClick={transferirParaContrato}>Gerar contrato — preencher rascunho</button>
+        </div>
         <button
           type="button"
           className="primary"
-                   <div className="actions" style={{flexWrap:'wrap',marginBottom:14}}>
-           <button type="button" className="primary" onClick={transferirParaContrato}>Gerar contrato — preencher rascunho</button>
-         </div>
-onClick={() => window.open(
+          onClick={() => window.open(
             'https://wa.me/?text=' + encodeURIComponent(mensagem),
             '_blank',
             'noopener,noreferrer'
