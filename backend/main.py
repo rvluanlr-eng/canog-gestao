@@ -286,6 +286,17 @@ def add_customer(body:CustomerIn,u:User=Depends(actor),s:Session=Depends(db)):
  if u.role!='admin': raise HTTPException(403,'Apenas administrador')
  if s.scalar(select(Customer).where(Customer.tenant_id==u.tenant_id,Customer.cpf==body.cpf)): raise HTTPException(409,'CPF já cadastrado')
  c=Customer(tenant_id=u.tenant_id,**body.model_dump());s.add(c);s.flush();audit(s,u,'customer.created',c.id);s.commit();return {'id':c.id}
+@app.patch('/customers/{customer_id}')
+def update_customer(customer_id:str,body:CustomerIn,u:User=Depends(actor),s:Session=Depends(db)):
+ if u.role!='admin': raise HTTPException(403,'Apenas administrador')
+ customer=scoped(s,Customer,customer_id,u)
+ other=s.scalar(select(Customer).where(Customer.tenant_id==u.tenant_id,Customer.cpf==body.cpf,Customer.id!=customer_id))
+ if other: raise HTTPException(409,'CPF já cadastrado para outra pessoa')
+ for key,value in body.model_dump().items(): setattr(customer,key,value)
+ audit(s,u,'customer.updated',customer.id)
+ s.commit()
+ return {'saved':True,'id':customer.id}
+
 @app.get('/devices')
 def devices(u:User=Depends(actor),s:Session=Depends(db)):
  return [{'id':d.id,'model':d.model,'imei':d.imei,'cost_cents':d.cost_cents,'status':d.status,'capacity':d.capacity,'color':d.color} for d in s.scalars(select(Device).where(Device.tenant_id==u.tenant_id)).all()]
