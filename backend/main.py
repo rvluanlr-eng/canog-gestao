@@ -821,6 +821,22 @@ def update_legal_details(contract_id:str,b:LegalDetailsIn,u:User=Depends(actor),
  s.commit()
  return {'saved':True,'contract_id':contract_id}
 
+@app.get('/contracts/{contract_id}/legal-details')
+def get_legal_details(contract_id:str,u:User=Depends(actor),s:Session=Depends(db)):
+ if u.role!='admin': raise HTTPException(403,'Apenas administrador')
+ scoped(s,Contract,contract_id,u)
+ details=s.scalar(select(ContractLegalDetails).where(ContractLegalDetails.contract_id==contract_id,ContractLegalDetails.tenant_id==u.tenant_id))
+ if not details: return {'saved':False,'contract_id':contract_id}
+ return {'saved':True,'contract_id':contract_id,
+  'customer_postal_code':details.customer_postal_code,
+  'customer_marital_status':details.customer_marital_status,
+  'customer_occupation':details.customer_occupation,
+  'guarantor_postal_code':details.guarantor_postal_code,
+  'activation_fee_cents':details.activation_fee_cents,
+  'contract_date':details.contract_date.isoformat() if details.contract_date else '',
+  'contract_end_date':details.contract_end_date.isoformat() if details.contract_end_date else '',
+  'inspection_date':details.inspection_date.isoformat() if details.inspection_date else ''}
+
 @app.get('/contracts/{contract_id}/legal-readiness')
 def legal_readiness(contract_id:str,u:User=Depends(actor),s:Session=Depends(db)):
  if u.role!='admin': raise HTTPException(403,'Acesso restrito')
