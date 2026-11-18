@@ -634,24 +634,22 @@ async def portal_proof(installment_id:str,file:UploadFile=File(...),c:Customer=D
 
 @app.get('/contracts/{contract_id}/pdf')
 def contract_pdf(contract_id:str,u:User=Depends(actor),s:Session=Depends(db)):
- from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer,Table,TableStyle
- from reportlab.lib.styles import getSampleStyleSheet
- from reportlab.lib import colors
- from reportlab.lib.enums import TA_CENTER
- from xml.sax.saxutils import escape
+ if u.role!='admin': raise HTTPException(403,'Acesso restrito')
+ from legal_pdf import generate
  c=scoped(s,Contract,contract_id,u)
  customer=scoped(s,Customer,c.customer_id,u)
  guarantor=scoped(s,Customer,c.guarantor_id,u) if c.guarantor_id else None
- d=scoped(s,Device,c.device_id,u)
- buffer=io.BytesIO();doc=SimpleDocTemplate(buffer,pagesize=(595,842),topMargin=48,bottomMargin=48)
- styles=getSampleStyleSheet();story=[]
- def para(t):story.append(Paragraph(t,styles['Normal']));story.append(Spacer(1,12))
- story.append(Paragraph('CANOG — FICHA DE DADOS CONTRATUAIS',styles['Title']))
- para('<b>ATENÇÃO: este documento NÃO substitui o contrato jurídico de 16 páginas enviado pela loja. É apenas uma ficha para conferência.</b>')
- for label,val in [('Contrato',c.id),('Situação',c.status),('Locatário',customer.name),('CPF',customer.cpf),('Fiador',guarantor.name if guarantor else 'Não cadastrado'),('Aparelho',d.model+' '+d.capacity+' '+d.color),('IMEI',d.imei),('Entrada (R$)',f'{c.entry_cents/100:.2f}'),('Troca (R$)',f'{c.trade_in_cents/100:.2f}'),('Parcelas',f'{c.installments_count} x R$ {c.installment_cents/100:.2f}'),('Valor residual (R$)',f'{c.residual_cents/100:.2f}'),('Primeiro vencimento',c.first_due.strftime('%d/%m/%Y') if c.first_due else 'Não definido')]: para(f'<b>{escape(label)}:</b> {escape(str(val))}')
- para('A versão final do instrumento contratual deverá incorporar integralmente o modelo fornecido, seus anexos e revisão jurídica.')
- doc.build(story)
- return Response(content=buffer.getvalue(),media_type='application/pdf',headers={'Content-Disposition':f'attachment; filename="ficha-{contract_id}.pdf"'})
+ device=scoped(s,Device,c.device_id,u)
+ details=s.scalar(select(ContractLegalDetails).where(ContractLegalDetails.contract_id==c.id,ContractLegalDetails.tenant_id==u.tenant_id))
+ missing=missing_legal_data(c,customer,guarantor,device,details)
+ if missing: raise HTTPException(422,{'message':'Preencha os dados jurídicos antes de gerar o PDF','missing':missing})
+ template=pathlib.Path(__file__).parent/'contract_modelo_aprovado.pdf'
+ if not template.is_file(): raise HTTPException(503,'PDF jurídico aprovado não instalado no backend')
+ try:
+  result=generate(template.read_bytes(),c,customer,guarantor,device,details)
+ except ValueError as exc: raise HTTPException(422,str(exc))
+ audit(s,u,'contract.legal_pdf_generated',c.id);s.commit()
+ return Response(content=result,media_type='application/pdf',headers={'Content-Disposition':f'attachment; filename="contrato-canog-{c.id}.pdf"','Cache-Control':'no-store'})
 
 
 class ReasonIn(BaseModel):
