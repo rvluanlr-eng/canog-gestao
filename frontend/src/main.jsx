@@ -108,6 +108,17 @@ async function req(path,{method='GET',body,auth=token,formData=false}={}){const 
 async function refresh(){if(!token)return;try{const [c,d,k,i,x,s]=await Promise.all(['/customers','/devices','/contracts','/installments','/dashboard','/settings'].map(p=>req(p)));setCustomers(c);setDevices(d);setContracts(k);setInstallments(i);setDash(x);setSettings(s)}catch(e){setError(e.message)}}
  useEffect(()=>{if(token)req('/collections/history').then(setCollectionHistory).catch(e=>setError('Histórico de cobranças: '+e.message));else setCollectionHistory([])},[token]);
 useEffect(()=>{refresh()},[token]);useEffect(()=>{if(portal&&portalToken)req('/portal/me',{auth:portalToken}).then(setMe).catch(e=>setError(e.message))},[portal,portalToken]);
+// Ao trocar de tela, iniciar a nova página no topo, inclusive ao abrir um contrato.
+useEffect(()=>{
+  const frame=window.requestAnimationFrame(()=>{
+    window.scrollTo({top:0,left:0,behavior:'instant'});
+    document.querySelectorAll('.main, .content').forEach(el=>{
+      if(el.scrollTop>0)el.scrollTop=0;
+    });
+  });
+  return ()=>window.cancelAnimationFrame(frame);
+},[page,detailContractId]);
+
 async function act(fn){setError('');setMessage('');try{const t=await fn();setMessage('Operação concluída.');await refresh();return t}catch(e){setError(e.message)}}
 async function signIn(e){e.preventDefault();setError('');setMessage('');try{const a=await req('/auth/login',{method:'POST',body:login,auth:''});sessionStorage.setItem('canog_token',a.access_token);setToken(a.access_token)}catch(e){setError(e.message)}}
 async function signPortal(e){e.preventDefault();setError('');setMessage('');try{const a=await req('/portal/login',{method:'POST',body:portalLogin,auth:''});sessionStorage.setItem('canog_portal',a.access_token);setPortalToken(a.access_token)}catch(e){setError(e.message)}}
