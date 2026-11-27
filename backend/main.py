@@ -39,6 +39,10 @@ class Customer(Base):
  email:Mapped[str]=mapped_column(String(200),default='')
  address:Mapped[str]=mapped_column(String(500),default='')
  __table_args__=(UniqueConstraint('tenant_id','cpf'),)
+class PersonRole(Base):
+ __tablename__='person_roles'
+ customer_id:Mapped[str]=mapped_column(ForeignKey('customers.id'),primary_key=True)
+ classification:Mapped[str]=mapped_column(String(20))
 class Device(Base):
  __tablename__='devices'
  id:Mapped[str]=mapped_column(String(36),primary_key=True,default=lambda:str(uuid.uuid4()))
@@ -198,7 +202,7 @@ class PortalCredential(Base):
  password_hash:Mapped[str]=mapped_column(String(250))
  __table_args__=(UniqueConstraint('tenant_id','customer_id'),)
 class Login(BaseModel): email:str; password:str
-class CustomerIn(BaseModel): name:str=Field(min_length=2); cpf:str=Field(pattern=r'^\d{11}$'); phone:str=''; email:str=''; address:str=''
+class CustomerIn(BaseModel): name:str=Field(min_length=2); cpf:str=Field(pattern=r'^\d{11}$'); phone:str=''; email:str=''; address:str=''; classification:Optional[str]=Field(default=None,pattern=r'^(client|guarantor|both)$')
 class DeviceIn(BaseModel): model:str=Field(min_length=2); imei:str=Field(pattern=r'^\d{15}$'); cost_cents:int=Field(ge=0); color:str=''; capacity:str=''
 class ContractIn(BaseModel): customer_id:str; guarantor_id:Optional[str]=None; device_id:str; installments_count:int=Field(ge=1,le=60); installment_cents:int=Field(ge=1); entry_cents:int=Field(default=0,ge=0); trade_in_cents:int=Field(default=0,ge=0); residual_cents:int=Field(default=0,ge=0); first_due:Optional[datetime]=None
 class DocsIn(BaseModel): approved:bool
@@ -245,6 +249,7 @@ def production_configuration_errors():
 def validate_production_startup():
  errors=production_configuration_errors()
  if errors: raise RuntimeError('Configuração insegura de produção: '+ '; '.join(errors))
+ PersonRole.__table__.create(engine,checkfirst=True)
 
 @app.get('/health')
 def health(): return {'status':'ok','version':'0.18.0'}
@@ -278,21 +283,46 @@ def add_collection_history(body:CollectionEventIn,u:User=Depends(actor),s:Sessio
  s.add(event);s.flush();audit(s,u,'collection.recorded',event.id);s.commit()
  return {'id':event.id,'saved':True}
 
+def person_roles(s,tenant_id):
+ roles={}
+ for cid,classification in s.execute(select(PersonRole.customer_id,PersonRole.classification).join(Customer,Customer.id==PersonRole.customer_id).where(Customer.tenant_id==tenant_id)):
+  roles[cid]=set(('client','guarantor') if classification=='both' else (classification,))
+ for client,guarantor in s.execute(select(Contract.customer_id,Contract.guarantor_id).where(Contract.tenant_id==tenant_id)):
+  roles.setdefault(client,set()).add('client')
+  if guarantor: roles.setdefault(guarantor,set()).add('guarantor')
+ return roles
+
+def set_person_role(s,cid,classification):
+ if classification is None: return
+ row=s.get(PersonRole,cid)
+ if row: row.classification=classification
+ else: s.add(PersonRole(customer_id=cid,classification=classification))
+
+def validate_parties(s,u,client,guarantor,previous=None):
+ scoped(s,Customer,client,u)
+ if guarantor: scoped(s,Customer,guarantor,u)
+ if guarantor and client==guarantor: raise HTTPException(422,'Cliente não pode ser seu próprio fiador')
+ roles=person_roles(s,u.tenant_id)
+ for cid,role in ((client,'client'),(guarantor,'guarantor')):
+  if cid and role not in roles.get(cid,set()): raise HTTPException(422,'Classifique a pessoa como cliente ou fiador no cadastro antes de selecioná-la')
+
 @app.get('/customers')
 def customers(u:User=Depends(actor),s:Session=Depends(db)):
- return [{'id':c.id,'name':c.name,'phone':c.phone,'cpf':c.cpf,'email':c.email,'address':c.address} for c in s.scalars(select(Customer).where(Customer.tenant_id==u.tenant_id)).all()]
+ roles=person_roles(s,u.tenant_id)
+ return [{'id':c.id,'name':c.name,'phone':c.phone,'cpf':c.cpf,'email':c.email,'address':c.address,'roles':sorted(roles.get(c.id,set()))} for c in s.scalars(select(Customer).where(Customer.tenant_id==u.tenant_id)).all()]
 @app.post('/customers',status_code=201)
 def add_customer(body:CustomerIn,u:User=Depends(actor),s:Session=Depends(db)):
  if u.role!='admin': raise HTTPException(403,'Apenas administrador')
  if s.scalar(select(Customer).where(Customer.tenant_id==u.tenant_id,Customer.cpf==body.cpf)): raise HTTPException(409,'CPF já cadastrado')
- c=Customer(tenant_id=u.tenant_id,**body.model_dump());s.add(c);s.flush();audit(s,u,'customer.created',c.id);s.commit();return {'id':c.id}
+ c=Customer(tenant_id=u.tenant_id,**body.model_dump(exclude={'classification'}));s.add(c);s.flush();set_person_role(s,c.id,body.classification);audit(s,u,'customer.created',c.id);s.commit();return {'id':c.id}
 @app.patch('/customers/{customer_id}')
 def update_customer(customer_id:str,body:CustomerIn,u:User=Depends(actor),s:Session=Depends(db)):
  if u.role!='admin': raise HTTPException(403,'Apenas administrador')
  customer=scoped(s,Customer,customer_id,u)
  other=s.scalar(select(Customer).where(Customer.tenant_id==u.tenant_id,Customer.cpf==body.cpf,Customer.id!=customer_id))
  if other: raise HTTPException(409,'CPF já cadastrado para outra pessoa')
- for key,value in body.model_dump().items(): setattr(customer,key,value)
+ for key,value in body.model_dump(exclude={'classification'}).items(): setattr(customer,key,value)
+ set_person_role(s,customer.id,body.classification)
  audit(s,u,'customer.updated',customer.id)
  s.commit()
  return {'saved':True,'id':customer.id}
@@ -308,8 +338,7 @@ def add_device(body:DeviceIn,u:User=Depends(actor),s:Session=Depends(db)):
 @app.post('/contracts',status_code=201)
 def add_contract(body:ContractIn,u:User=Depends(actor),s:Session=Depends(db)):
  if u.role!='admin': raise HTTPException(403,'Apenas administrador')
- scoped(s,Customer,body.customer_id,u)
- if body.guarantor_id: scoped(s,Customer,body.guarantor_id,u)
+ validate_parties(s,u,body.customer_id,body.guarantor_id)
  d=scoped(s,Device,body.device_id,u)
  if d.status!='available': raise HTTPException(409,'Aparelho indisponível')
  c=Contract(tenant_id=u.tenant_id,**body.model_dump());s.add(c);s.flush();audit(s,u,'contract.draft_created',c.id);s.commit();return {'id':c.id,'status':c.status}
@@ -368,8 +397,7 @@ def edit_contract(contract_id:str,b:ContractEditIn,u:User=Depends(actor),s:Sessi
  if u.role!='admin': raise HTTPException(403,'Apenas administrador')
  c=scoped(s,Contract,contract_id,u)
  if c.status not in ('draft','active'): raise HTTPException(409,'Contrato encerrado: edição bloqueada para preservar o encerramento')
- scoped(s,Customer,b.customer_id,u)
- if b.guarantor_id: scoped(s,Customer,b.guarantor_id,u)
+ validate_parties(s,u,b.customer_id,b.guarantor_id)
  device=scoped(s,Device,b.device_id,u)
  if device.id!=c.device_id:
   if device.status!='available' or s.scalar(select(Contract).where(Contract.tenant_id==u.tenant_id,Contract.device_id==device.id,Contract.status=='active')): raise HTTPException(409,'Aparelho indisponível')
