@@ -157,14 +157,14 @@ class ContractLegalDetails(Base):
  contract_date:Mapped[Optional[date]]=mapped_column(nullable=True)
 
 class LegalDetailsIn(BaseModel):
- customer_postal_code:str=Field(min_length=8,max_length=20)
- customer_marital_status:str=Field(min_length=2,max_length=80)
- customer_occupation:str=Field(min_length=2,max_length=120)
- guarantor_postal_code:str=Field(min_length=8,max_length=20)
- activation_fee_cents:int=Field(ge=0)
- contract_end_date:date
- inspection_date:date
- contract_date:date
+ customer_postal_code:str=Field(default="",max_length=20)
+ customer_marital_status:str=Field(default="",max_length=80)
+ customer_occupation:str=Field(default="",max_length=120)
+ guarantor_postal_code:str=Field(default="",max_length=20)
+ activation_fee_cents:Optional[int]=Field(default=None,ge=0)
+ contract_end_date:Optional[date]=None
+ inspection_date:Optional[date]=None
+ contract_date:Optional[date]=None
 
 # Digital inspection of the rented device. A draft can be edited until signed.
 class DeviceInspection(Base):
@@ -689,8 +689,9 @@ def contract_pdf(contract_id:str,u:User=Depends(actor),s:Session=Depends(db)):
  guarantor=scoped(s,Customer,c.guarantor_id,u) if c.guarantor_id else None
  device=scoped(s,Device,c.device_id,u)
  details=s.scalar(select(ContractLegalDetails).where(ContractLegalDetails.contract_id==c.id,ContractLegalDetails.tenant_id==u.tenant_id))
+ details=effective_legal_details(s,c,details)
  missing=missing_legal_data(c,customer,guarantor,device,details)
- if missing: raise HTTPException(422,{'message':'Preencha os dados jurídicos antes de gerar o PDF','missing':missing})
+ if missing: raise HTTPException(422,'Preencha somente os campos pendentes: '+', '.join(missing))
  template=pathlib.Path(__file__).parent/'contract_modelo_aprovado.pdf'
  if not template.is_file(): raise HTTPException(503,'PDF jurídico aprovado não instalado no backend')
  try:
@@ -824,24 +825,19 @@ def contract_template_issues(raw:str):
  return {'unresolved_tokens':tokens,'legacy_placeholders':legacy,
          'ready_for_signature':not tokens and not legacy}
 
+def effective_legal_details(s, contract, details):
+ from types import SimpleNamespace
+ fields=('customer_postal_code','customer_marital_status','customer_occupation','guarantor_postal_code','activation_fee_cents','contract_end_date','inspection_date','contract_date')
+ values={k:getattr(details,k,None) for k in fields}
+ inspection=s.scalar(select(DeviceInspection).where(DeviceInspection.contract_id==contract.id,DeviceInspection.tenant_id==contract.tenant_id))
+ if not values['contract_date'] and contract.signed_at: values['contract_date']=contract.signed_at.date()
+ if not values['inspection_date'] and inspection and inspection.inspected_at: values['inspection_date']=inspection.inspected_at.date()
+ return SimpleNamespace(**values)
+
 def missing_legal_data(contract,customer,guarantor,device,details=None):
- """Shared readiness validation for preview and draft issuance."""
- required=[('customer.name',customer.name),('customer.cpf',customer.cpf),
-  ('customer.address',customer.address),('customer.phone',customer.phone),
-  ('guarantor',guarantor),('guarantor.address',guarantor.address if guarantor else None),
-  ('guarantor.phone',guarantor.phone if guarantor else None),
-  ('device.model',device.model),('device.imei',device.imei),
-  ('device.color',device.color),('device.capacity',device.capacity),
-  ('contract.first_due',contract.first_due)]
- required += [('legal_details',details),('customer.postal_code',details.customer_postal_code if details else None),
-  ('customer.marital_status',details.customer_marital_status if details else None),
-  ('customer.occupation',details.customer_occupation if details else None),
-  ('guarantor.postal_code',details.guarantor_postal_code if details else None),
-  ('activation_fee',details.activation_fee_cents if details and details.activation_fee_cents is not None else None),
-  ('contract_end_date',details.contract_end_date if details else None),
-  ('inspection_date',details.inspection_date if details else None),
-  ('contract_date',details.contract_date if details else None)]
- return [name for name,value in required if value is None or value=='' or (isinstance(value,str) and not value.strip())]
+ required=[('Nome do cliente',customer.name),('CPF do cliente',customer.cpf),('Endereço do cliente',customer.address),('Telefone do cliente',customer.phone),('E-mail do cliente',customer.email),('Fiador',guarantor),('Nome do fiador',getattr(guarantor,'name',None)),('CPF do fiador',getattr(guarantor,'cpf',None)),('Endereço do fiador',getattr(guarantor,'address',None)),('Modelo do aparelho',device.model),('IMEI',device.imei),('Cor do aparelho',device.color),('Capacidade do aparelho',device.capacity),('Primeiro vencimento',contract.first_due)]
+ required += [(label,getattr(details,key,None)) for label,key in [('CEP do cliente','customer_postal_code'),('CEP do fiador','guarantor_postal_code'),('Taxa de ativação','activation_fee_cents'),('Data de término','contract_end_date'),('Data da vistoria','inspection_date'),('Data do contrato','contract_date')]]
+ return [name for name,value in required if value is None or (isinstance(value,str) and not value.strip())]
 
 @app.get('/admin/deployment-readiness')
 def deployment_readiness(u:User=Depends(actor)):
@@ -881,10 +877,11 @@ def update_legal_details(contract_id:str,b:LegalDetailsIn,u:User=Depends(actor),
 @app.get('/contracts/{contract_id}/legal-details')
 def get_legal_details(contract_id:str,u:User=Depends(actor),s:Session=Depends(db)):
  if u.role!='admin': raise HTTPException(403,'Apenas administrador')
- scoped(s,Contract,contract_id,u)
+ contract=scoped(s,Contract,contract_id,u)
  details=s.scalar(select(ContractLegalDetails).where(ContractLegalDetails.contract_id==contract_id,ContractLegalDetails.tenant_id==u.tenant_id))
- if not details: return {'saved':False,'contract_id':contract_id}
- return {'saved':True,'contract_id':contract_id,
+ saved=details is not None
+ details=effective_legal_details(s,contract,details)
+ return {'saved':saved,'contract_id':contract_id,
   'customer_postal_code':details.customer_postal_code,
   'customer_marital_status':details.customer_marital_status,
   'customer_occupation':details.customer_occupation,
@@ -897,16 +894,15 @@ def get_legal_details(contract_id:str,u:User=Depends(actor),s:Session=Depends(db
 @app.get('/contracts/{contract_id}/legal-readiness')
 def legal_readiness(contract_id:str,u:User=Depends(actor),s:Session=Depends(db)):
  if u.role!='admin': raise HTTPException(403,'Acesso restrito')
- scoped(s,Contract,contract_id,u)
- template=pathlib.Path(__file__).parent/'contract_template.txt'
- if not template.exists(): raise HTTPException(503,'Modelo contratual não instalado')
- # This endpoint reports source-template defects; it does not certify legal adequacy.
- issues=contract_template_issues(template.read_text(encoding='utf-8'))
+ template=pathlib.Path(__file__).parent/'contract_modelo_aprovado.pdf'
+ if not template.is_file(): raise HTTPException(503,'Modelo PDF aprovado não instalado')
+ issues={'unresolved_tokens':[],'legacy_placeholders':[]}
  contract=scoped(s,Contract,contract_id,u)
  customer=scoped(s,Customer,contract.customer_id,u)
  guarantor=scoped(s,Customer,contract.guarantor_id,u) if contract.guarantor_id else None
  device=scoped(s,Device,contract.device_id,u)
  details=s.scalar(select(ContractLegalDetails).where(ContractLegalDetails.contract_id==contract_id,ContractLegalDetails.tenant_id==u.tenant_id))
+ details=effective_legal_details(s,contract,details)
  missing=missing_legal_data(contract,customer,guarantor,device,details)
  return {**issues,'missing_contract_data':missing,
          'ready_for_signature':False, # A software check never replaces legal review.
