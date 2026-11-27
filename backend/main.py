@@ -352,6 +352,54 @@ def activate(contract_id:str,u:User=Depends(actor),s:Session=Depends(db)):
 @app.get('/contracts')
 def contracts(u:User=Depends(actor),s:Session=Depends(db)):
  return [{'id':c.id,'status':c.status,'customer_id':c.customer_id,'guarantor_id':c.guarantor_id,'device_id':c.device_id,'documents_approved':c.documents_approved,'installments_count':c.installments_count,'installment_cents':c.installment_cents,'entry_cents':c.entry_cents,'trade_in_cents':c.trade_in_cents,'residual_cents':c.residual_cents,'first_due':c.first_due.isoformat() if c.first_due else None} for c in s.scalars(select(Contract).where(Contract.tenant_id==u.tenant_id)).all()]
+class ContractEditIn(BaseModel):
+ customer_id:str
+ guarantor_id:Optional[str]=None
+ device_id:str
+ installments_count:int=Field(ge=1,le=60)
+ installment_cents:int=Field(ge=1)
+ entry_cents:int=Field(ge=0)
+ trade_in_cents:int=Field(ge=0)
+ residual_cents:int=Field(ge=0)
+ first_due:Optional[datetime]=None
+
+@app.patch('/contracts/{contract_id}')
+def edit_contract(contract_id:str,b:ContractEditIn,u:User=Depends(actor),s:Session=Depends(db)):
+ if u.role!='admin': raise HTTPException(403,'Apenas administrador')
+ c=scoped(s,Contract,contract_id,u)
+ if c.status not in ('draft','active'): raise HTTPException(409,'Contrato encerrado: edição bloqueada para preservar o encerramento')
+ scoped(s,Customer,b.customer_id,u)
+ if b.guarantor_id: scoped(s,Customer,b.guarantor_id,u)
+ device=scoped(s,Device,b.device_id,u)
+ if device.id!=c.device_id:
+  if device.status!='available' or s.scalar(select(Contract).where(Contract.tenant_id==u.tenant_id,Contract.device_id==device.id,Contract.status=='active')): raise HTTPException(409,'Aparelho indisponível')
+  if c.status=='active':
+   old=scoped(s,Device,c.device_id,u)
+   old.status='available';device.status='rented'
+ rows=s.scalars(select(Installment).where(Installment.tenant_id==u.tenant_id,Installment.contract_id==c.id).with_for_update()).all()
+ financial_changed=(b.installments_count!=c.installments_count or b.installment_cents!=c.installment_cents or (b.first_due.date() if b.first_due else None)!=(c.first_due.date() if c.first_due else None))
+ if c.status=='active' and financial_changed:
+  if not b.first_due: raise HTTPException(409,'Primeiro vencimento obrigatório')
+  receipts=historical_finance(s,u.tenant_id)
+  by_number={p.number:p for p in rows}
+  if len(by_number)!=len(rows): raise HTTPException(409,'Parcelas duplicadas: necessário conferir histórico')
+  for p in rows:
+   protected=p.status!='pending' or p.paid_at or p.proof_id or p.id in receipts
+   if protected:
+    if p.number>b.installments_count: raise HTTPException(409,'Não é possível excluir parcela com histórico de pagamento ou comprovante')
+    continue
+   if p.number>b.installments_count: s.delete(p)
+   else:
+    if b.installment_cents!=c.installment_cents: p.amount_cents=b.installment_cents
+    if (b.first_due.date() if b.first_due else None)!=(c.first_due.date() if c.first_due else None): p.due_at=month_add(b.first_due,p.number-1)
+  for n in range(1,b.installments_count+1):
+   if n not in by_number: s.add(Installment(tenant_id=u.tenant_id,contract_id=c.id,number=n,amount_cents=b.installment_cents,due_at=month_add(b.first_due,n-1)))
+ for key,value in b.model_dump().items(): setattr(c,key,value)
+ if c.status=='draft': c.documents_approved=False
+ audit(s,u,'contract.updated',c.id)
+ s.commit()
+ return {'saved':True,'id':c.id}
+
 @app.post('/installments/{installment_id}/confirm')
 def confirm(installment_id:str,u:User=Depends(actor),s:Session=Depends(db)):
  if u.role!='admin': raise HTTPException(403,'Permissão insuficiente')
@@ -820,7 +868,7 @@ def deployment_readiness(u:User=Depends(actor)):
 def update_legal_details(contract_id:str,b:LegalDetailsIn,u:User=Depends(actor),s:Session=Depends(db)):
  if u.role!='admin': raise HTTPException(403,'Apenas administrador')
  contract=scoped(s,Contract,contract_id,u)
- if contract.status!='draft': raise HTTPException(409,'Dados jurídicos só podem ser alterados em rascunhos')
+ if contract.status not in ('draft','active'): raise HTTPException(409,'Contrato encerrado')
  details=s.scalar(select(ContractLegalDetails).where(ContractLegalDetails.contract_id==contract_id,ContractLegalDetails.tenant_id==u.tenant_id))
  if not details:
   details=ContractLegalDetails(contract_id=contract_id,tenant_id=u.tenant_id)
